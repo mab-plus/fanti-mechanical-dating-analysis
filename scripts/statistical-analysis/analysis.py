@@ -212,7 +212,15 @@ def main():
     plt.close()
 
 
+# if __name__ == "__main__":
+#     with warnings.catch_warnings():
+#         warnings.filterwarnings("ignore", category=ConvergenceWarning)
+#         main()
+
+from sklearn.exceptions import UndefinedMetricWarning, ConvergenceWarning
+
 if __name__ == "__main__":
     with warnings.catch_warnings():
+        warnings.filterwarnings("ignore", category=UndefinedMetricWarning)
         warnings.filterwarnings("ignore", category=ConvergenceWarning)
         main()

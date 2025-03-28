@@ -111,18 +111,48 @@ class FantiCrossedAnalysis:
 
         print("=== Résultats de la Validation Croisée ===")
 
+        # print("\nK-Fold CV:")
+        # rmse_kf = np.mean([s['rmse'] for s in self.kfold_scores])
+        # r2_kf = np.mean([s['r2'] for s in self.kfold_scores])
+        # print(f"RMSE: {rmse_kf:.1f} ± {np.std([s['rmse'] for s in self.kfold_scores]):.1f}")
+        # print(f"R²: {r2_kf:.3f} ± {np.std([s['r2'] for s in self.kfold_scores]):.3f}")
+        #
+        # print("\nLeave-One-Out CV:")
+        # rmse_loo = np.mean([s['rmse'] for s in self.loo_scores])
+        # r2_loo = np.mean([s['r2'] for s in self.loo_scores])
+        # print(f"RMSE: {rmse_loo:.1f} ± {np.std([s['rmse'] for s in self.loo_scores]):.1f}")
+        # print(f"R²: {r2_loo:.3f} ± {np.std([s['r2'] for s in self.loo_scores]):.3f}")
+        #
+        # print("\nHoldout Validation:")
+        # print(f"RMSE: {self.holdout_score['rmse']:.1f}")
+        # print(f"R²: {self.holdout_score['r2']:.3f}")
+
         print("\nK-Fold CV:")
-        rmse_kf = np.mean([s['rmse'] for s in self.kfold_scores])
-        r2_kf = np.mean([s['r2'] for s in self.kfold_scores])
-        print(f"RMSE: {rmse_kf:.1f} ± {np.std([s['rmse'] for s in self.kfold_scores]):.1f}")
-        print(f"R²: {r2_kf:.3f} ± {np.std([s['r2'] for s in self.kfold_scores]):.3f}")
+        rmse_vals_kf = [s['rmse'] for s in self.kfold_scores]
+        r2_vals_kf = [s['r2'] for s in self.kfold_scores if not np.isnan(s['r2'])]
+        print(f"RMSE: {np.mean(rmse_vals_kf):.1f} ± {np.std(rmse_vals_kf):.1f}")
+        if len(r2_vals_kf) >= 2:
+            print(f"R²: {np.mean(r2_vals_kf):.3f} ± {np.std(r2_vals_kf):.3f}")
+        elif len(r2_vals_kf) == 1:
+            print(f"R²: {r2_vals_kf[0]:.3f} (basé sur un seul fold, résultat fragile)")
+        else:
+            print("R²: non défini (échantillons insuffisants)")
 
         print("\nLeave-One-Out CV:")
-        rmse_loo = np.mean([s['rmse'] for s in self.loo_scores])
-        r2_loo = np.mean([s['r2'] for s in self.loo_scores])
-        print(f"RMSE: {rmse_loo:.1f} ± {np.std([s['rmse'] for s in self.loo_scores]):.1f}")
-        print(f"R²: {r2_loo:.3f} ± {np.std([s['r2'] for s in self.loo_scores]):.3f}")
+        rmse_vals_loo = [s['rmse'] for s in self.loo_scores]
+        r2_vals_loo = [s['r2'] for s in self.loo_scores if not np.isnan(s['r2'])]
+        print(f"RMSE: {np.mean(rmse_vals_loo):.1f} ± {np.std(rmse_vals_loo):.1f}")
+        if len(r2_vals_loo) >= 2:
+            print(f"R²: {np.mean(r2_vals_loo):.3f} ± {np.std(r2_vals_loo):.3f}")
+        elif len(r2_vals_loo) == 1:
+            print(f"R²: {r2_vals_loo[0]:.3f} (basé sur un seul fold, résultat fragile)")
+        else:
+            print("R²: non défini (échantillons insuffisants)")
 
         print("\nHoldout Validation:")
         print(f"RMSE: {self.holdout_score['rmse']:.1f}")
-        print(f"R²: {self.holdout_score['r2']:.3f}")
+        if not np.isnan(self.holdout_score['r2']):
+            print(f"R²: {self.holdout_score['r2']:.3f}")
+        else:
+            print("R²: non défini (échantillons insuffisants)")
+
