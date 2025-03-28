@@ -14,7 +14,7 @@ All analyses support a methodology-driven interpretation of the data, in line wi
 > **Title:** *Critical Assessment of Mechanical Dating Methods for Ancient Flax Fibres: Viscoelastic Modelling Versus Multilinear Regression*  
 > **Author:** Michel Bakhtaoui  
 > **Submitted to:** *Archaeometry*  
-> **DOI (Zenodo):** _[to be added after DOI is created]_
+> **DOI (Zenodo):** *[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.15098839.svg)](https://doi.org/10.5281/zenodo.15098839)*
 
 ## 🗂 Repository Structure
 
