@@ -1,14 +1,14 @@
-cff-version: 1.2.0
+cff-version: 1.2.1
 message: "If you use this software, please cite it using the metadata below."
 title: "Fanti Mechanical Dating Analysis"
-version: "2.0.0"
+version: "2.1.1"
 doi: 10.5281/zenodo.15098839
 authors:
   - family-names: Bakhtaoui
     given-names: Michel
     orcid: https://orcid.org/0009-0006-6710-7787
     affiliation: Aix-Marseille Université
-date-released: 2025-03-27
+date-released: 2025-06-10
 url: https://github.com/mab-plus/fanti-mechanical-dating-analysis
 keywords:
   - archaeometry
