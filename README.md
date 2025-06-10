@@ -1,6 +1,6 @@
 # Fanti Mechanical Dating Analysis
 
-[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.15098839.svg)](https://doi.org/10.5281/zenodo.15098839)
+
 
 This repository contains the full set of scripts used in the critical evaluation of the mechanical and opto-chemical dating method proposed by Fanti et al. (2015). The project provides a dual approach:
 
@@ -14,7 +14,7 @@ All analyses support a methodology-driven interpretation of the data, in line wi
 > **Title:** *Critical Assessment of Mechanical Dating Methods for Ancient Flax Fibres: Viscoelastic Modelling Versus Multilinear Regression*  
 > **Author:** Michel Bakhtaoui  
 > **Submitted to:** *Archaeometry*  
-> **DOI (Zenodo):** *[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.15098839.svg)](https://doi.org/10.5281/zenodo.15098839)*
+
 
 ## 🗂 Repository Structure
 
