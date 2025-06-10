@@ -10,8 +10,8 @@ from statsmodels.stats.diagnostic import het_breuschpagan
 class FantiMultipleRegression:
     def __init__(self, samples, robust=False, weights=None):
         """
-        robust  : si True, on utilise RLM (méthode M-estimator) au lieu de OLS.
-        weights : array de poids optionnel pour une régression pondérée (WLS).
+        robust  : if True, uses RLM (M-estimator method) instead of OLS.
+        weights : optional weight array for weighted regression (WLS).
         """
         self.samples = samples
         self.y = np.array([s['date'] for s in samples.values()])
@@ -31,8 +31,8 @@ class FantiMultipleRegression:
 
     def fit(self):
         """
-        Si robust=True => utilise RLM,
-        Sinon => OLS simple ou WLS si weights est défini.
+        If robust=True => uses RLM,
+        Otherwise => simple OLS or WLS if weights is defined.
         """
         X_const = add_constant(self.X)
         if self.robust:
@@ -52,46 +52,46 @@ class FantiMultipleRegression:
         self.residuals = self.y - self.y_pred
         self.R2 = results.rsquared if not self.robust else 1 - results.ssr / np.sum((self.y - np.mean(self.y))**2)
 
-        # Test de Breusch-Pagan
+        # Breusch-Pagan test
         bp_stat, bp_pvalue, _, _ = het_breuschpagan(results.resid, X_const)
         self.bp_pvalue = bp_pvalue
 
-        # Calcul du VIF pour les variables X
+        # VIF calculation for X variables
         self.vif = {}
-        for i in range(1, X_const.shape[1]):  # on exclut la colonne de 1
+        for i in range(1, X_const.shape[1]):  # exclude the column of 1s
             vif_val = variance_inflation_factor(X_const, i)
             self.vif[f'VIF_{i}'] = vif_val
 
     def print_results(self):
         if self.beta is None:
-            print("Le modèle n'est pas encore ajusté. Appelez la méthode fit().")
+            print("Model not fitted yet. Call the fit() method.")
             return
-        print("=== Régression Multiple ===")
+        print("=== Multiple Regression ===")
         if self.robust:
-            print("Mode : RLM (robust M-estimator)")
+            print("Mode: RLM (robust M-estimator)")
         elif self.weights is not None:
-            print("Mode : WLS (weighted least squares)")
+            print("Mode: WLS (weighted least squares)")
         else:
-            print("Mode : OLS classique")
+            print("Mode: Classic OLS")
 
-        print(f"Coefficients (intercept + X) : {self.beta}")
-        print(f"R² global                   : {self.R2:.3f}")
+        print(f"Coefficients (intercept + X): {self.beta}")
+        print(f"Global R²                   : {self.R2:.3f}")
         print(f"Breusch-Pagan p-value       : {self.bp_pvalue:.3f}")
         for var, vif_value in self.vif.items():
-            print(f"{var} : {vif_value:.3f}")
+            print(f"{var}: {vif_value:.3f}")
 
     def plot_fit(self):
         if self.y_pred is None:
-            print("Le modèle n'est pas encore ajusté. Appelez la méthode fit().")
+            print("Model not fitted yet. Call the fit() method.")
             return
         plt.figure(figsize=(6, 5))
-        plt.scatter(self.y, self.y_pred, color='blue', label="Prédictions")
+        plt.scatter(self.y, self.y_pred, color='blue', label="Predictions")
         min_val = min(min(self.y), min(self.y_pred))
         max_val = max(max(self.y), max(self.y_pred))
-        plt.plot([min_val, max_val], [min_val, max_val], 'r--', label="Ligne identité")
-        plt.xlabel("Dates observées")
-        plt.ylabel("Dates prédites")
-        plt.title("Comparaison Observé vs Prévu (Régression Multiple)")
+        plt.plot([min_val, max_val], [min_val, max_val], 'r--', label="Identity line")
+        plt.xlabel("Observed dates")
+        plt.ylabel("Predicted dates")
+        plt.title("Observed vs Predicted Comparison (Multiple Regression)")
         plt.legend()
         plt.grid(True)
         # plt.show()

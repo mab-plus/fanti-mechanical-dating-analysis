@@ -9,8 +9,8 @@ from statsmodels.stats.outliers_influence import variance_inflation_factor
 class FantiExperiment:
     def __init__(self, samples, detect_outliers=False):
         """
-        detect_outliers : si True, on appliquera un petit filtrage
-        d'outliers basé sur z-score pour chaque régression simple.
+        detect_outliers : if True, we will apply a small outlier
+        filtering based on z-score for each simple regression.
         """
         self.samples = samples
         self.dates = np.array([s['date'] for s in samples.values()])
@@ -26,7 +26,7 @@ class FantiExperiment:
 
     def perform_regression(self):
         for name, data in self.parameters.items():
-            # On détecte éventuellement les outliers avant la régression
+            # Optionally detect outliers before regression
             if self.detect_outliers:
                 data, date_filtered = self._filter_outliers(data, self.dates)
             else:
@@ -58,9 +58,9 @@ class FantiExperiment:
 
     def _filter_outliers(self, x, y, z_thresh=2.5):
         """
-        Petit helper pour enlever des outliers en régression simple.
-        On fait d'abord un fit, on calcule les résidus, on vire ceux
-        au-dessus d'un certain seuil en z-score.
+        Small helper to remove outliers in simple regression.
+        We first fit, calculate residuals, then remove those
+        above a certain z-score threshold.
         """
         slope, intercept, _, _, _ = stats.linregress(x, y)
         res = y - (slope*x + intercept)
@@ -70,21 +70,21 @@ class FantiExperiment:
 
     def print_regression_results(self):
         for name, res in self.results.items():
-            print(f"--- Paramètre : {name} ---")
-            print(f"  Pente               : {res['slope']:.3f}")
-            print(f"  Ordonnée à l'origine: {res['intercept']:.3f}")
-            print(f"  R²                  : {res['r_squared']:.3f}")
-            print(f"  p-value (régression): {res['p_value']:.3f}")
-            print(f"  Erreur type         : {res['stderr']:.3f}")
-            print(f"  Shapiro-Wilk p-value (normalité résidus): {res['p_shapiro']:.3f}")
-            print(f"  Levene p-value (homoscédasticité)       : {res['p_levene']:.3f}")
-            print(f"  Breusch-Pagan p-value                   : {res['bp_pvalue']:.3f}")
-            print(f"  VIF (Multicolinéarité)                  : {res['vif']:.3f}")
+            print(f"--- Parameter: {name} ---")
+            print(f"  Slope                : {res['slope']:.3f}")
+            print(f"  Intercept            : {res['intercept']:.3f}")
+            print(f"  R²                   : {res['r_squared']:.3f}")
+            print(f"  p-value (regression) : {res['p_value']:.3f}")
+            print(f"  Standard error       : {res['stderr']:.3f}")
+            print(f"  Shapiro-Wilk p-value (residual normality): {res['p_shapiro']:.3f}")
+            print(f"  Levene p-value (homoscedasticity)        : {res['p_levene']:.3f}")
+            print(f"  Breusch-Pagan p-value                    : {res['bp_pvalue']:.3f}")
+            print(f"  VIF (Multicollinearity)                  : {res['vif']:.3f}")
             print("-" * 40)
 
     def plot_regressions(self, turin_values=None):
         """
-        Exemple de tracé. turin_values : dict optionnel pour rajouter un point
+        Example plot. turin_values: optional dict to add a point
         """
         n_params = len(self.parameters)
         fig, axs = plt.subplots(1, n_params, figsize=(5 * n_params, 4))
@@ -94,15 +94,15 @@ class FantiExperiment:
             ax = axs[i]
             slope = self.results[name]['slope']
             intercept = self.results[name]['intercept']
-            ax.scatter(data, self.dates, color='blue', label='Données')
+            ax.scatter(data, self.dates, color='blue', label='Data')
             x_range = np.linspace(np.min(data), np.max(data), 100)
             y_pred = slope * x_range + intercept
             ax.plot(x_range, y_pred, color='red', label=f"R²={self.results[name]['r_squared']:.2f}")
             if turin_values and name in turin_values:
                 val = turin_values[name]
                 ax.scatter(val, slope*val + intercept,
-                           color='green', marker='*', s=150, label='Suaire')
-            ax.set_xlabel(f"{name} (transformé)")
+                           color='green', marker='*', s=150, label='Shroud')
+            ax.set_xlabel(f"{name} (transformed)")
             ax.set_ylabel("Date (AD)")
             ax.set_title(name)
             ax.legend()

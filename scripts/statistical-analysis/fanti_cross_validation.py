@@ -5,9 +5,9 @@ from sklearn.metrics import mean_squared_error
 class CrossValidation:
     def __init__(self, X, y, k_folds=5):
         """
-        Classe générique pour la validation croisée (LOO et K-Fold).
-        X, y : array numpy complets pour la régression multiple (ou simple).
-        k_folds : nb de plis pour K-Fold
+        Generic class for cross-validation (LOO and K-Fold).
+        X, y : complete numpy arrays for multiple (or simple) regression.
+        k_folds : number of folds for K-Fold
         """
         self.X = X
         self.y = y
@@ -15,9 +15,9 @@ class CrossValidation:
 
     def leave_one_out_cv(self):
         """
-        Validation croisée Leave-One-Out en ajustant un modèle OLS
-        sur (X_train, y_train).
-        Retourne la MSE moyenne, l’écart-type et la stabilité des beta si besoin.
+        Leave-One-Out cross-validation fitting an OLS model
+        on (X_train, y_train).
+        Returns average MSE, standard deviation and beta stability if needed.
         """
         loo = LeaveOneOut()
         mse_scores = []
@@ -27,7 +27,7 @@ class CrossValidation:
             X_train, X_test = self.X[train_idx], self.X[test_idx]
             y_train, y_test = self.y[train_idx], self.y[test_idx]
 
-            # Ajout d'une colonne de 1 pour l'intercept
+            # Add column of 1s for intercept
             X_train_ones = np.column_stack((np.ones(len(X_train)), X_train))
             beta, _, _, _ = np.linalg.lstsq(X_train_ones, y_train, rcond=None)
             beta_values.append(beta)
@@ -49,9 +49,9 @@ class CrossValidation:
 
     def k_fold_cv(self):
         """
-        Validation croisée K-Fold en ajustant un modèle OLS
-        sur (X_train, y_train).
-        Retourne la MSE moyenne et son écart-type.
+        K-Fold cross-validation fitting an OLS model
+        on (X_train, y_train).
+        Returns average MSE and its standard deviation.
         """
         kf = KFold(n_splits=self.k_folds, shuffle=True, random_state=42)
         mse_scores = []
@@ -77,16 +77,16 @@ class CrossValidation:
 
     def print_results(self, loo_results, kfold_results):
         """
-        Fonction pour imprimer de façon compacte les résultats de LOO et K-Fold.
+        Function to compactly print LOO and K-Fold results.
         """
-        print("=== Validation Croisée Leave-One-Out ===")
-        print(f"Erreur moyenne (MSE) : {loo_results['mean_cv_error']:.2f}")
-        print(f"Écart-type           : {loo_results['std_cv_error']:.2f}")
-        print("Stabilité des coefficients (std) :")
+        print("=== Leave-One-Out Cross-Validation ===")
+        print(f"Mean error (MSE): {loo_results['mean_cv_error']:.2f}")
+        print(f"Standard deviation: {loo_results['std_cv_error']:.2f}")
+        print("Coefficient stability (std):")
         for i, std in enumerate(loo_results['beta_stability']):
             print(f"  β{i}: {std:.5f}")
 
-        print("\n=== Validation Croisée K-Fold ===")
-        print(f"Erreur moyenne (MSE) : {kfold_results['mean_cv_error']:.2f}")
-        print(f"Écart-type           : {kfold_results['std_cv_error']:.2f}")
-        print("Scores MSE individuels :", kfold_results['cv_scores'])
+        print("\n=== K-Fold Cross-Validation ===")
+        print(f"Mean error (MSE): {kfold_results['mean_cv_error']:.2f}")
+        print(f"Standard deviation: {kfold_results['std_cv_error']:.2f}")
+        print("Individual MSE scores:", kfold_results['cv_scores'])

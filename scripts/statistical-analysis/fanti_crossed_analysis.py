@@ -6,20 +6,20 @@ from sklearn.preprocessing import StandardScaler
 class FantiCrossedAnalysis:
     def __init__(self, X, y, k_folds=5, test_size=0.2, random_state=42):
         """
-        Analyse croisée complète du modèle de Fanti.
+        Complete cross-analysis of Fanti's model.
 
         Parameters:
         -----------
         X : array-like
-            Variables prédictives (ln(σr), ln(Ei), ηi)
+            Predictive variables (ln(σr), ln(Ei), ηi)
         y : array-like
-            Dates à prédire
+            Dates to predict
         k_folds : int
-            Nombre de plis pour k-fold CV
+            Number of folds for k-fold CV
         test_size : float
-            Proportion de données pour le test set
+            Proportion of data for test set
         random_state : int
-            Pour la reproductibilité
+            For reproducibility
         """
         self.X = np.asarray(X)
         self.y = np.asarray(y)
@@ -28,21 +28,21 @@ class FantiCrossedAnalysis:
         self.random_state = random_state
         self.scaler = StandardScaler()
 
-        # Résultats stockés
+        # Stored results
         self.kfold_scores = None
         self.loo_scores = None
         self.holdout_score = None
 
     def _fit_and_score(self, X_train, X_test, y_train, y_test):
-        """Helper pour ajuster et évaluer le modèle"""
+        """Helper to fit and evaluate the model"""
         X_train_scaled = self.scaler.fit_transform(X_train)
         X_test_scaled = self.scaler.transform(X_test)
 
-        # Ajout intercept
+        # Add intercept
         X_train_int = np.column_stack([np.ones(len(X_train_scaled)), X_train_scaled])
         X_test_int = np.column_stack([np.ones(len(X_test_scaled)), X_test_scaled])
 
-        # Régression
+        # Regression
         beta = np.linalg.lstsq(X_train_int, y_train, rcond=None)[0]
         y_pred = X_test_int @ beta
 
@@ -82,7 +82,7 @@ class FantiCrossedAnalysis:
         return scores
 
     def holdout_analysis(self):
-        """Validation sur échantillon test indépendant"""
+        """Validation on independent test sample"""
         X_train, X_test, y_train, y_test = train_test_split(
             self.X, self.y,
             test_size=self.test_size,
@@ -93,7 +93,7 @@ class FantiCrossedAnalysis:
         return self.holdout_score
 
     def run_complete_analysis(self):
-        """Exécute les trois types de validation croisée"""
+        """Execute all three types of cross-validation"""
         kfold = self.k_fold_analysis()
         loo = self.leave_one_out_analysis()
         holdout = self.holdout_analysis()
@@ -105,11 +105,11 @@ class FantiCrossedAnalysis:
         }
 
     def print_results(self):
-        """Affiche un résumé des résultats"""
+        """Display a summary of results"""
         if not all([self.kfold_scores, self.loo_scores, self.holdout_score]):
             self.run_complete_analysis()
 
-        print("=== Résultats de la Validation Croisée ===")
+        print("=== Cross-Validation Results ===")
 
         # print("\nK-Fold CV:")
         # rmse_kf = np.mean([s['rmse'] for s in self.kfold_scores])
@@ -134,9 +134,9 @@ class FantiCrossedAnalysis:
         if len(r2_vals_kf) >= 2:
             print(f"R²: {np.mean(r2_vals_kf):.3f} ± {np.std(r2_vals_kf):.3f}")
         elif len(r2_vals_kf) == 1:
-            print(f"R²: {r2_vals_kf[0]:.3f} (basé sur un seul fold, résultat fragile)")
+            print(f"R²: {r2_vals_kf[0]:.3f} (based on single fold, fragile result)")
         else:
-            print("R²: non défini (échantillons insuffisants)")
+            print("R²: undefined (insufficient samples)")
 
         print("\nLeave-One-Out CV:")
         rmse_vals_loo = [s['rmse'] for s in self.loo_scores]
@@ -145,14 +145,13 @@ class FantiCrossedAnalysis:
         if len(r2_vals_loo) >= 2:
             print(f"R²: {np.mean(r2_vals_loo):.3f} ± {np.std(r2_vals_loo):.3f}")
         elif len(r2_vals_loo) == 1:
-            print(f"R²: {r2_vals_loo[0]:.3f} (basé sur un seul fold, résultat fragile)")
+            print(f"R²: {r2_vals_loo[0]:.3f} (based on single fold, fragile result)")
         else:
-            print("R²: non défini (échantillons insuffisants)")
+            print("R²: undefined (insufficient samples)")
 
         print("\nHoldout Validation:")
         print(f"RMSE: {self.holdout_score['rmse']:.1f}")
         if not np.isnan(self.holdout_score['r2']):
             print(f"R²: {self.holdout_score['r2']:.3f}")
         else:
-            print("R²: non défini (échantillons insuffisants)")
-
+            print("R²: undefined (insufficient samples)")

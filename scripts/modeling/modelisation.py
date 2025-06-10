@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Modélisation de la dégradation du lin : modèle multi-exponentiel avec correction environnementale,
-composante Fourier, propagation de l'incertitude sur T et H, intégration de l'effet du feu de Chambéry (1532),
-propagation des incertitudes sur la date prédite via la méthode des différences finies, affichage amélioré,
-et intégration d'une approche bayésienne complète.
+Flax degradation modeling: multi-exponential model with environmental correction,
+Fourier component, T and H uncertainty propagation, integration of the Chambéry fire effect (1532),
+uncertainty propagation on predicted date via finite difference method, improved display,
+and integration of a complete Bayesian approach.
 """
 
 import numpy as np
@@ -13,66 +13,66 @@ import pandas as pd
 from scipy.optimize import least_squares, fsolve
 
 # =======================
-# 1) Paramètres du modèle de base
+# 1) Base model parameters
 # =======================
-sigma0 = 1103         # Résistance initiale de référence (MPa)
-sigma_infty = 0       # Résistance résiduelle (MPa)
-tau = 1102            # Temps caractéristique de dégradation (années)
+sigma0 = 1103         # Initial reference strength (MPa)
+sigma_infty = 0       # Residual strength (MPa)
+tau = 1102            # Characteristic degradation time (years)
 
 # =======================
-# 2) Paramètres de correction environnementale pour σ₀
+# 2) Environmental correction parameters for σ₀
 # =======================
 alpha = 1e-4
 beta = 2e-4
 gamma = 1e-8
 delta = 4e-8
-T0 = 20.0  # Température de référence (°C)
+T0 = 20.0  # Reference temperature (°C)
 
 def sigma0_env(T, H, sigma0_base):
-    """Corrige la résistance initiale en fonction de la température et de l'humidité."""
+    """Corrects initial strength based on temperature and humidity."""
     return sigma0_base * np.exp(alpha * H + beta * (T - T0) + gamma * H**2 + delta * (T - T0)**2)
 
 # =======================
-# 3) Paramètres environnementaux pour la modification de tau
+# 3) Environmental parameters for tau modification
 # =======================
-T_ref = 20.0    # Température de référence
-H_ref = 60.0    # Humidité de référence
-kappa_T_tau = 0.01   # Influence de T sur tau
-kappa_H_tau = 0.01   # Influence de H sur tau
+T_ref = 20.0    # Reference temperature
+H_ref = 60.0    # Reference humidity
+kappa_T_tau = 0.01   # T influence on tau
+kappa_H_tau = 0.01   # H influence on tau
 
 def effective_tau(tau_i, T, H):
-    """Calcule le temps caractéristique effectif en fonction de T et H."""
+    """Calculates effective characteristic time based on T and H."""
     return tau_i / (1 + kappa_T_tau * (T - T_ref) + kappa_H_tau * (H - H_ref))
 
 # =======================
-# 4) Décomposition de Fourier (composantes sinusoïdales et cosinusoïdales)
+# 4) Fourier decomposition (sine and cosine components)
 # =======================
-fourier_coeffs_sin = [50.0, 30.0]    # Amplitudes des sinusoïdes
-fourier_coeffs_cos = [30.0, 15.0]    # Amplitudes des cosinusoïdales
-fourier_periods = [2000.0, 4000.0]   # Périodes correspondantes (années)
-fourier_phases = [0.0, 0.0]          # Phases (en radians)
+fourier_coeffs_sin = [50.0, 30.0]    # Sine amplitudes
+fourier_coeffs_cos = [30.0, 15.0]    # Cosine amplitudes
+fourier_periods = [2000.0, 4000.0]   # Corresponding periods (years)
+fourier_phases = [0.0, 0.0]          # Phases (in radians)
 
 def fourier_series(t, coeffs_sin, coeffs_cos, periods, phases):
-    """Calcule la somme d'une série de Fourier."""
+    """Calculates the sum of a Fourier series."""
     result = 0.0
     for A_sin, A_cos, P, phi in zip(coeffs_sin, coeffs_cos, periods, phases):
         result += A_sin * np.sin(2 * np.pi * t / P + phi) + A_cos * np.cos(2 * np.pi * t / P + phi)
     return result
 
 # =======================
-# 5) Modèle multi-exponentiel avec correction environnementale, composante Fourier et effet du feu
+# 5) Multi-exponential model with environmental correction, Fourier component and fire effect
 # =======================
-N_BRANCHES = 2  # Nombre de branches exponentielles
+N_BRANCHES = 2  # Number of exponential branches
 
 def multi_exponential_env_fourier(t, T, H, *params):
     """
-    Modèle complet :
+    Complete model:
       σ(t) = σ_infty + Σ_{i=1}^{N_BRANCHES} A_i * exp(-t / τ_i_eff) + Fourier(t)
-    avec τ_i_eff = τ_i_corr / (1 + kappa_T_tau*(T - T_ref) + kappa_H_tau*(H - H_ref))
-    L'effet du feu est intégré via un facteur correctif de 0.5 si t >= t_fire.
-    t est défini comme t = 2000 - Age (donc t=468 correspond à l'incendie de 1532).
+    with τ_i_eff = τ_i_corr / (1 + kappa_T_tau*(T - T_ref) + kappa_H_tau*(H - H_ref))
+    Fire effect is integrated via a corrective factor of 0.5 if t >= t_fire.
+    t is defined as t = 2000 - Age (so t=468 corresponds to the 1532 fire).
     """
-    # On essaie de convertir t en tableau NumPy
+    # Try to convert t to NumPy array
     try:
         t_np = np.asarray(t)
         if t_np.ndim == 0:
@@ -80,9 +80,9 @@ def multi_exponential_env_fourier(t, T, H, *params):
         else:
             correction_fire = np.where(t_np >= (2000 - 1532), 0.5, 1.0)
     except Exception:
-        # Si t est symbolique (PyMC), on utilise pm.math.switch
+        # If t is symbolic (PyMC), use pm.math.switch
         import pymc as pm
-        t_fire = 2000 - 1532  # 468 ans
+        t_fire = 2000 - 1532  # 468 years
         correction_fire = pm.math.switch(pm.math.ge(t, t_fire), 0.5, 1.0)
 
     A_list = params[:N_BRANCHES]
@@ -96,13 +96,13 @@ def multi_exponential_env_fourier(t, T, H, *params):
     return sigma
 
 def wrapper_for_curve_fit(t, *params):
-    """Wrapper pour l'ajustement avec T et H fixes (20°C, 60% RH)."""
+    """Wrapper for fitting with fixed T and H (20°C, 60% RH)."""
     T_const = 20.0
     H_const = 60.0
     return multi_exponential_env_fourier(t, T_const, H_const, *params)
 
 # =============================
-# 6) Données des échantillons de Fanti (simplifiées)
+# 6) Fanti sample data (simplified)
 # =============================
 samples_data = [
     {"Sample": "B",   "Dating": "2000 A.D.",     "σr (MPa)": 1076, "T": 18.0, "H": 65.0, "Uncertainty (yrs)": 0},
@@ -118,7 +118,7 @@ samples_data = [
 df_samples = pd.DataFrame(samples_data)
 
 def parse_age(dating_str):
-    """Extrait un âge moyen (en années AD, négatif pour B.C.) depuis la chaîne."""
+    """Extracts an average age (in AD years, negative for B.C.) from the string."""
     if "A.D." in dating_str:
         parts = dating_str.replace("A.D.", "").split("-")
         if len(parts) == 2:
@@ -136,8 +136,8 @@ def parse_age(dating_str):
 
 def parse_dating_interval(dating_str):
     """
-    Extrait l'intervalle de datation à partir de la chaîne.
-    Renvoie (min_age, max_age) en années AD.
+    Extracts the dating interval from the string.
+    Returns (min_age, max_age) in AD years.
     """
     if "A.D." in dating_str:
         parts = dating_str.replace("A.D.", "").split("-")
@@ -163,12 +163,12 @@ def parse_dating_interval(dating_str):
         return None, None
 
 # =============================
-# Fonctions d'inversion pour retrouver l'âge à partir d'une résistance donnée
+# Inversion functions to find age from given resistance
 # =============================
 def invert_age_in_interval(target_sigma, A_min, A_max, T, H, params, age_step=1.0):
     """
-    Recherche l'âge dans l'intervalle [A_min, A_max] qui minimise |σ_modele - σ_target|.
-    Renvoie l'âge optimal.
+    Searches for the age in interval [A_min, A_max] that minimizes |σ_model - σ_target|.
+    Returns the optimal age.
     """
     if A_min is None or A_max is None or A_min > A_max:
         return None
@@ -183,14 +183,14 @@ def invert_age_in_interval(target_sigma, A_min, A_max, T, H, params, age_step=1.
     return age_range[idx_min]
 
 def func_to_solve(age, target_sigma, T, H, params):
-    """Fonction dont la racine (âge) vérifie multi_exponential_env_fourier(2000 - age) = σ_target."""
+    """Function whose root (age) satisfies multi_exponential_env_fourier(2000 - age) = σ_target."""
     t_val = 2000 - age
     return multi_exponential_env_fourier(t_val, T, H, *params) - target_sigma
 
 def invert_age(target_sigma, T, H, params, age_guess=2000.0):
     """
-    Tente d'utiliser fsolve pour retrouver l'âge correspondant à σ_target.
-    En cas d'échec, utilise l'inversion discrète.
+    Attempts to use fsolve to find the age corresponding to σ_target.
+    In case of failure, uses discrete inversion.
     """
     sol, infodict, ier, mesg = fsolve(func_to_solve, age_guess, args=(target_sigma, T, H, params), full_output=True)
     if ier == 1:
@@ -200,11 +200,11 @@ def invert_age(target_sigma, T, H, params, age_guess=2000.0):
 
 def get_model_age_for_sample(row, T=20.0, H=60.0, params=None, age_step=0.5):
     """
-    Pour un échantillon (row), si un intervalle de datation est disponible,
-    recherche l'âge optimal dans cet intervalle ; sinon, utilise l'inversion hybride.
+    For a sample (row), if a dating interval is available,
+    searches for optimal age in that interval; otherwise, uses hybrid inversion.
     """
     if params is None:
-        raise ValueError("Veuillez fournir les paramètres 'params' issus du fit.")
+        raise ValueError("Please provide 'params' parameters from the fit.")
     A_min = row["Dating_min"]
     A_max = row["Dating_max"]
     target_sigma = row["σr (MPa)"]
@@ -215,25 +215,25 @@ def get_model_age_for_sample(row, T=20.0, H=60.0, params=None, age_step=0.5):
     return invert_age(target_sigma, T, H, params)
 
 # =============================
-# Calcul des âges parsés et durée correspondante
+# Calculate parsed ages and corresponding duration
 # =============================
 df_samples["Parsed Age (AD)"] = df_samples["Dating"].apply(parse_age)
 df_samples["t (yrs)"] = 2000 - df_samples["Parsed Age (AD)"]
 df_samples["Dating_min"], df_samples["Dating_max"] = zip(*df_samples["Dating"].apply(parse_dating_interval))
 
 # =============================
-# Ajustement du modèle aux données de résistance (σr)
+# Fit model to resistance data (σr)
 # =============================
 t_data = df_samples["t (yrs)"].values
 sigma_data = df_samples["σr (MPa)"].values
 
-# Calcul de l'incertitude sur σ (15% ou 1 MPa minimum)
+# Calculate σ uncertainty (15% or minimum 1 MPa)
 error_floor_fraction = 0.15
 minimum_sigma_uncertainty = 1.0
 sigma_uncertainty = np.maximum(minimum_sigma_uncertainty, error_floor_fraction * sigma_data)
 df_samples["σr Uncertainty (MPa)"] = sigma_uncertainty
 
-# Paramètres initiaux pour [A1, A2, τ1, τ2] (modèle à 2 branches)
+# Initial parameters for [A1, A2, τ1, τ2] (2-branch model)
 p0 = [820, 220, 1075, 1075]
 bounds_lower = [1, 1, 10, 10]
 bounds_upper = [1e5, 1e5, 1e5, 1e5]
@@ -252,13 +252,13 @@ popt = result.x
 A_opt = popt[:N_BRANCHES]
 tau_opt = popt[N_BRANCHES:2*N_BRANCHES]
 
-print("Paramètres optimaux (multi-exp + env + Fourier) :")
+print("Optimal parameters (multi-exp + env + Fourier):")
 for i in range(N_BRANCHES):
     print(f" A{i+1} = {A_opt[i]:.3f} MPa")
-    print(f" tau{i+1} = {tau_opt[i]:.3f} ans (base, avant correction env)")
+    print(f" tau{i+1} = {tau_opt[i]:.3f} years (base, before env correction)")
 
 # =============================
-# Simulation Monte Carlo pour évaluer l'incertitude des paramètres
+# Monte Carlo simulation to evaluate parameter uncertainty
 # =============================
 n_iter = 1000
 params_MC = np.zeros((n_iter, len(p0)))
@@ -274,25 +274,25 @@ for i in range(n_iter):
 param_means = np.mean(params_MC, axis=0)
 param_std = np.std(params_MC, axis=0)
 
-print("\nParamètres moyens obtenus par Monte Carlo :")
-print("{:<10s} {:>15s} {:>15s}".format("Paramètre", "Moyenne", "Ecart-type"))
+print("\nMean parameters obtained by Monte Carlo:")
+print("{:<10s} {:>15s} {:>15s}".format("Parameter", "Mean", "Std dev"))
 for idx in range(N_BRANCHES):
     print("{:<10s} {:15.3f} {:15.3f}".format(f"A{idx+1}", param_means[idx], param_std[idx]))
 for idx in range(N_BRANCHES):
     print("{:<10s} {:15.3f} {:15.3f}".format(f"τ{idx+1}", param_means[idx+N_BRANCHES], param_std[idx+N_BRANCHES]))
 
 # =============================
-# Calcul des âges modélisés pour chaque échantillon
+# Calculate modeled ages for each sample
 # =============================
 df_samples["Model Age"] = df_samples.apply(lambda row: get_model_age_for_sample(row, T=20.0, H=60.0, params=popt, age_step=0.5), axis=1)
 df_samples["Model Calculated Duration (yrs)"] = 2000 - df_samples["Model Age"]
 
-print("\n=== Comparatif : Données réelles vs. Âge calculé par le modèle (hybride) ===")
+print("\n=== Comparison: Real data vs. Age calculated by model (hybrid) ===")
 print(df_samples[["Sample", "Dating", "Parsed Age (AD)", "σr (MPa)", "σr Uncertainty (MPa)",
                    "Model Calculated Duration (yrs)", "Model Age"]].to_string(index=False))
 
 # =============================
-# Visualisation
+# Visualization
 # =============================
 plt.figure(figsize=(8,6))
 plt.errorbar(
@@ -300,18 +300,18 @@ plt.errorbar(
     xerr=df_samples["Uncertainty (yrs)"],
     yerr=df_samples["σr Uncertainty (MPa)"],
     fmt='o', color='b', capsize=5, markersize=6, elinewidth=1,
-    label="Échantillons C14 validés"
+    label="C14 validated samples"
 )
 age_plot = np.linspace(-3500, 2100, 300)
 sigma_plot = np.array([multi_exponential_env_fourier(2000 - age, 20.0, 60.0, *popt) for age in age_plot])
-plt.plot(age_plot, sigma_plot, 'r-', label="Modèle multi-exp + env + Fourier")
-plt.xlabel("Âge (AD)")
-plt.ylabel("Résistance (MPa)")
-plt.title("Comparaison : Âge (C14) vs. Résistance mesurée et modèle")
+plt.plot(age_plot, sigma_plot, 'r-', label="Multi-exp + env + Fourier model")
+plt.xlabel("Age (AD)")
+plt.ylabel("Strength (MPa)")
+plt.title("Comparison: Age (C14) vs. Measured strength and model")
 plt.grid(True)
 plt.legend()
 
-# Ajout des annotations pour chaque échantillon avec offset et boîte englobante
+# Add annotations for each sample with offset and bounding box
 for idx, row in df_samples.iterrows():
     x_val = row["Parsed Age (AD)"]
     y_val = row["σr (MPa)"]
@@ -334,16 +334,16 @@ plt.close()
 # plt.show()
 
 # =============================
-# Prédiction de date à partir d'une valeur mécanique (Approche 1)
+# Date prediction from mechanical value (Approach 1)
 # =============================
-sigma_input = 243.22  # Valeur de résistance (MPa)
+sigma_input = 243.22  # Resistance value (MPa)
 predicted_age = invert_age(sigma_input, 20.0, 60.0, popt, age_guess=2000.0)
 predicted_duration = 2000 - predicted_age
-print(f"\nApproche 1 : Pour une résistance de {sigma_input:.1f} MPa, la date prédite est : {predicted_age:.1f} AD")
-print(f"Ce qui correspond à une durée calculée de {predicted_duration:.1f} ans")
+print(f"\nApproach 1: For a strength of {sigma_input:.1f} MPa, the predicted date is: {predicted_age:.1f} AD")
+print(f"This corresponds to a calculated duration of {predicted_duration:.1f} years")
 
 # =============================
-# Propagation Monte Carlo de l'incertitude sur T et H (Approche 2)
+# Monte Carlo uncertainty propagation on T and H (Approach 2)
 # =============================
 n_MC = 1000
 predicted_dates = []
@@ -355,12 +355,12 @@ for _ in range(n_MC):
 predicted_dates = np.array(predicted_dates)
 mean_date = np.mean(predicted_dates)
 hdi = np.percentile(predicted_dates, [2.5, 97.5])
-print(f"\nApproche 2 (Monte Carlo sur T et H) :")
-print(f"Date prédite moyenne = {mean_date:.1f} AD")
-print(f"Intervalle de crédibilité 95% = [{hdi[0]:.1f}, {hdi[1]:.1f}] AD")
+print(f"\nApproach 2 (Monte Carlo on T and H):")
+print(f"Mean predicted date = {mean_date:.1f} AD")
+print(f"95% credibility interval = [{hdi[0]:.1f}, {hdi[1]:.1f}] AD")
 
 # =============================
-# Analyse de sensibilité : Variation de T et H
+# Sensitivity analysis: T and H variation
 # =============================
 T_values = np.linspace(18, 22, 20)
 H_values = np.linspace(55, 65, 20)
@@ -372,10 +372,10 @@ for i in range(T_grid.shape[0]):
 
 plt.figure(figsize=(8,6))
 cp = plt.contourf(T_grid, H_grid, predicted_date_grid, cmap='viridis', levels=20)
-plt.colorbar(cp, label="Date prédite (AD)")
-plt.xlabel("Température (°C)")
-plt.ylabel("Humidité (%)")
-plt.title(f"Analyse de sensibilité pour σ = {sigma_input} MPa")
+plt.colorbar(cp, label="Predicted date (AD)")
+plt.xlabel("Temperature (°C)")
+plt.ylabel("Humidity (%)")
+plt.title(f"Sensitivity analysis for σ = {sigma_input} MPa")
 plt.tight_layout()
 fig = plt.gcf()  # Get current figure object
 fig.savefig("figure2.png", dpi=300, bbox_inches="tight")
@@ -383,16 +383,16 @@ plt.close()
 # plt.show()
 
 # =============================
-# Propagation d'incertitude sur la date via la méthode des différences finies (Approche 3)
+# Uncertainty propagation on date via finite difference method (Approach 3)
 # =============================
 def propagate_uncertainty(sigma_input, T, H, popt, cov_params, u_sigma, delta_sigma=0.1, delta_param=1e-3):
     """
-    Calcule la date prédite et son incertitude par propagation d'erreur.
-    - sigma_input : valeur mesurée de σ.
-    - popt : vecteur des paramètres optimaux.
-    - cov_params : matrice de covariance des paramètres (calculée à partir de params_MC).
-    - u_sigma : incertitude sur la mesure de σ.
-    - delta_sigma, delta_param : pas pour les différences finies.
+    Calculates predicted date and its uncertainty by error propagation.
+    - sigma_input: measured value of σ.
+    - popt: vector of optimal parameters.
+    - cov_params: parameter covariance matrix (calculated from params_MC).
+    - u_sigma: uncertainty on σ measurement.
+    - delta_sigma, delta_param: steps for finite differences.
     """
     t0 = invert_age(sigma_input, T, H, popt, age_guess=2000.0)
     t_plus = invert_age(sigma_input + delta_sigma, T, H, popt, age_guess=2000.0)
@@ -411,11 +411,11 @@ def propagate_uncertainty(sigma_input, T, H, popt, cov_params, u_sigma, delta_si
 cov_params = np.cov(params_MC.T)
 u_sigma_input = np.mean(sigma_uncertainty)
 t_predicted, u_t, dtdsigma, grad = propagate_uncertainty(sigma_input, 20.0, 60.0, popt, cov_params, u_sigma_input)
-print(f"\nApproche 3 (Propagation d'incertitude) :")
-print(f"Date prédite = {t_predicted:.1f} AD ± {u_t:.1f} ans")
+print(f"\nApproach 3 (Uncertainty propagation):")
+print(f"Predicted date = {t_predicted:.1f} AD ± {u_t:.1f} years")
 
 # =============================
-# Approche 4 (Bayésienne) : Inférence complète avec PyMC
+# Approach 4 (Bayesian): Complete inference with PyMC
 # =============================
 import pymc as pm
 import arviz as az
@@ -438,14 +438,14 @@ with pm.Model() as bayes_model:
     trace_bayes = pm.sample(2000, tune=5000, target_accept=0.999, return_inferencedata=True, nuts={"max_treedepth": 15}, random_seed=42)
 
 # plt.show()
-az.plot_trace(trace_bayes)  # Assure-toi que trace contient A1, A2, tau1, tau2
+az.plot_trace(trace_bayes)  # Make sure trace contains A1, A2, tau1, tau2
 plt.savefig("figure6.png", dpi=300, bbox_inches="tight")
 plt.close()
 
-print("\n=== Approche 4 (Bayésienne) : Résumé des paramètres ===")
+print("\n=== Approach 4 (Bayesian): Parameter summary ===")
 print(az.summary(trace_bayes, round_to=1))
 
-# Inversion bayésienne : pour chaque échantillon postérieur, calculer la date prédite pour σ = 243.22 MPa.
+# Bayesian inversion: for each posterior sample, calculate predicted date for σ = 243.22 MPa.
 posterior = trace_bayes.posterior
 n_samples = posterior.sizes["chain"] * posterior.sizes["draw"]
 
@@ -455,7 +455,7 @@ tau1_samples = posterior["tau1"].values.flatten()
 tau2_samples = posterior["tau2"].values.flatten()
 
 def invert_age_bayes(sigma_target, A1_, A2_, tau1_, tau2_, age_guess=2000.0):
-    """Inversion pour un échantillon bayésien de paramètres."""
+    """Inversion for a Bayesian parameter sample."""
     def func(age):
         t_val = 2000 - age
         correction_fire = 0.5 if t_val >= 468 else 1.0
@@ -483,15 +483,15 @@ bayes_dates = np.array(bayes_dates)
 median_bayes_date = np.nanmedian(bayes_dates)
 hdi_bayes = az.hdi(bayes_dates[~np.isnan(bayes_dates)], hdi_prob=0.95)
 
-print(f"\n=== Approche 4 (Bayésienne) : Date prédite pour σ = {sigma_input_bayes} MPa ===")
-print(f"  Moyenne = {median_bayes_date:.1f} AD")
-print(f"  Intervalle HDI 95% = [{hdi_bayes[0]:.1f}, {hdi_bayes[1]:.1f}] AD")
+print(f"\n=== Approach 4 (Bayesian): Predicted date for σ = {sigma_input_bayes} MPa ===")
+print(f"  Mean = {median_bayes_date:.1f} AD")
+print(f"  95% HDI interval = [{hdi_bayes[0]:.1f}, {hdi_bayes[1]:.1f}] AD")
 
 plt.figure(figsize=(8,4))
 plt.hist(bayes_dates[~np.isnan(bayes_dates)], bins=30, color='skyblue', edgecolor='gray')
-plt.xlabel("Date prédite (AD)")
-plt.ylabel("Fréquence")
-plt.title("Distribution postérieure des dates prédites (Bayésien)")
+plt.xlabel("Predicted date (AD)")
+plt.ylabel("Frequency")
+plt.title("Posterior distribution of predicted dates (Bayesian)")
 plt.tight_layout()
 fig = plt.gcf()  # Get current figure object
 fig.savefig("figure4.png", dpi=300, bbox_inches="tight")

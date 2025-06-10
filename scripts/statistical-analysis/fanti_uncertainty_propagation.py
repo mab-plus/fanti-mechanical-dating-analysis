@@ -6,29 +6,29 @@ from statsmodels.tools import add_constant
 class FantiUncertaintyPropagation:
     def __init__(self, mult_reg_model, turin_values, n_simulations=10000):
         """
-        mult_reg_model : instance de FantiMultipleRegression déjà ajustée.
-        turin_values   : dict des valeurs (transformées) pour le Suaire.
-        n_simulations  : nb de simulations Monte Carlo.
+        mult_reg_model : instance of FantiMultipleRegression already fitted.
+        turin_values   : dict of (transformed) values for the Shroud.
+        n_simulations  : number of Monte Carlo simulations.
         """
         self.model = mult_reg_model
         self.turin_values = turin_values
         self.n_sim = n_simulations
 
         if self.model.beta is None or self.model.y_pred is None:
-            raise ValueError("Le modèle mult_reg_model doit être ajusté (fit()) avant.")
+            raise ValueError("The mult_reg_model must be fitted (fit()) before.")
 
-        self.X = self.model.X  # déjà sans la colonne de 1
+        self.X = self.model.X  # already without the column of 1s
         self.y = self.model.y
         self.beta_hat = self.model.beta
         self.residuals = self.model.residuals
         self.n, self.p = self.X.shape
 
         ss_res = np.sum(self.residuals**2)
-        self.s2 = ss_res / (self.n - self.p - 1)  # variance résiduelle
+        self.s2 = ss_res / (self.n - self.p - 1)  # residual variance
         self.XtX_inv = np.linalg.inv(self.X.T @ self.X)
         self.x_turin = self._build_turin_vector()
 
-        # Test de normalité des résidus
+        # Residual normality test
         self.shapiro_pvalue = stats.shapiro(self.residuals)[1]
 
         self.simulated_dates_parametric = None
@@ -37,48 +37,48 @@ class FantiUncertaintyPropagation:
 
     def _build_turin_vector(self):
         """
-        Construit le vecteur [ln(sigma_r), ln(Ei), eta_i] pour le Suaire,
-        en lui ajoutant un 1 éventuellement en externe.
+        Builds the vector [ln(sigma_r), ln(Ei), eta_i] for the Shroud,
+        eventually adding a 1 externally.
         """
-        x1 = self.turin_values.get('Breaking Strength')  # déjà en ln ?
+        x1 = self.turin_values.get('Breaking Strength')  # already in ln?
         x2 = self.turin_values.get('Inverse Young Modulus')
         x3 = self.turin_values.get('Inverse Loss Factor')
         if any(val is None for val in [x1, x2, x3]):
-            raise ValueError("turin_values doit contenir Breaking Strength, Inverse Young Modulus, Inverse Loss Factor.")
+            raise ValueError("turin_values must contain Breaking Strength, Inverse Young Modulus, Inverse Loss Factor.")
         return np.array([x1, x2, x3])
 
     def run_parametric_monte_carlo(self):
         """
-        Génère des échantillons de beta (coeffs) selon une distribution
-        multivariée normale, puis prédit la date du Suaire.
+        Generates beta (coeffs) samples according to a multivariate
+        normal distribution, then predicts the Shroud date.
         """
         X_const = np.column_stack((np.ones(len(self.X)), self.X))
         cov_beta = self.s2 * np.linalg.inv(X_const.T @ X_const)
-        # rendre la matrice symétrique si besoin
+        # make the matrix symmetric if needed
         cov_beta = (cov_beta + cov_beta.T) / 2
         min_eig = np.min(np.linalg.eigvals(cov_beta))
         if min_eig < 0:
             cov_beta -= 10*min_eig * np.eye(*cov_beta.shape)
 
         beta_samples = np.random.multivariate_normal(mean=self.beta_hat, cov=cov_beta, size=self.n_sim)
-        # On construit x_turin avec un 1 pour l'intercept
+        # Build x_turin with a 1 for the intercept
         x_turin_const = np.insert(self.x_turin, 0, 1.0)
 
-        # On obtient la date prédite pour chaque tirage
+        # Get the predicted date for each draw
         self.simulated_dates_parametric = np.dot(beta_samples, x_turin_const)
 
     def summarize_parametric(self, alpha=0.05):
         """
-        Résume la distribution paramétrique simulée.
+        Summarizes the simulated parametric distribution.
         """
         if self.simulated_dates_parametric is None:
-            raise RuntimeError("Appelez run_parametric_monte_carlo() avant.")
+            raise RuntimeError("Call run_parametric_monte_carlo() first.")
         return self._summary_stats(self.simulated_dates_parametric, alpha)
 
     def run_data_perturbation_monte_carlo(self, x_std=0.01, y_std=20.0, seed=42):
         """
-        Exemple d’extension : On perturbe X et y (bruit gaussien),
-        on ré-estime le modèle, et on calcule la date du Suaire à chaque simulation.
+        Extension example: We perturb X and y (Gaussian noise),
+        re-estimate the model, and calculate the Shroud date for each simulation.
         """
         rng = np.random.default_rng(seed)
         X_const_original = np.column_stack((np.ones(len(self.X)), self.X))
@@ -93,7 +93,7 @@ class FantiUncertaintyPropagation:
             X_pert_const = np.column_stack((np.ones(n), X_pert))
             beta_hat_pert, _, _, _ = np.linalg.lstsq(X_pert_const, y_pert, rcond=None)
 
-            # On prédit la date du Suaire
+            # Predict the Shroud date
             x_turin_const = np.insert(self.x_turin, 0, 1.0)
             date_pert = x_turin_const @ beta_hat_pert
             simulated_dates.append(date_pert)
@@ -102,7 +102,7 @@ class FantiUncertaintyPropagation:
 
     def summarize_data_perturbation(self, alpha=0.05):
         if self.simulated_dates_data is None:
-            raise RuntimeError("Appelez run_data_perturbation_monte_carlo() avant.")
+            raise RuntimeError("Call run_data_perturbation_monte_carlo() first.")
         return self._summary_stats(self.simulated_dates_data, alpha)
 
     def _summary_stats(self, samples, alpha=0.05):
@@ -119,5 +119,5 @@ class FantiUncertaintyPropagation:
         }
 
     def print_diagnostics(self):
-        print("=== Diagnostics de l'Incertitude ===")
-        print(f"Test de normalité des résidus (Shapiro-Wilk) : p-value = {self.shapiro_pvalue:.3f}")
+        print("=== Uncertainty Diagnostics ===")
+        print(f"Residual normality test (Shapiro-Wilk): p-value = {self.shapiro_pvalue:.3f}")

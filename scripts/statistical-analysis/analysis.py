@@ -1,15 +1,15 @@
-# Imports standards
+# Standard imports
 import numpy as np
 import matplotlib.pyplot as plt
 import warnings
 from scipy.stats import zscore
 
-# Imports sklearn
+# sklearn imports
 from sklearn.linear_model import RANSACRegressor
 from sklearn.model_selection import KFold
 from sklearn.exceptions import ConvergenceWarning
 
-# Imports locaux
+# Local imports
 from fanti_experiment import FantiExperiment
 from fanti_multiple_regression import FantiMultipleRegression
 from fanti_uncertainty_propagation import FantiUncertaintyPropagation
@@ -18,23 +18,23 @@ from fanti_cross_validation import CrossValidation
 from fanti_crossed_analysis import FantiCrossedAnalysis
 
 # --------------------------------------------------------------
-# 1) AJOUT POSSIBLE : Gestion simple des outliers (exemple)
+# 1) POSSIBLE ADDITION: Simple outlier management (example)
 # --------------------------------------------------------------
 
 def detect_outliers_zscore(X, y, threshold=2.5):
     """
-    Exemple simple de détection d'outliers basé sur le z-score des résidus
-    d'une régression linéaire multiple (OLS).
-    Return : masques (bool) pour outliers / inliers
+    Simple example of outlier detection based on residual z-scores
+    from a multiple linear regression (OLS).
+    Returns: masks (bool) for outliers / inliers
     """
-    # Ajustement OLS rapide
-    # On ajoute la colonne de 1 pour l'intercept :
+    # Quick OLS fit
+    # Add column of 1s for intercept:
     X_ones = np.column_stack((np.ones(len(X)), X))
     beta, _, _, _ = np.linalg.lstsq(X_ones, y, rcond=None)
     y_pred = X_ones @ beta
     residuals = y - y_pred
 
-    # Calcul du z-score des résidus
+    # Calculate residual z-scores
     zs = zscore(residuals)
     outliers_mask = np.abs(zs) > threshold
     inliers_mask = ~outliers_mask
@@ -42,8 +42,8 @@ def detect_outliers_zscore(X, y, threshold=2.5):
 
 def detect_outliers_ransac(X, y):
     """
-    Exemple d’utilisation de RANSAC pour trouver les inliers/outliers.
-    Retourne deux masques booléens inliers/outliers.
+    Example using RANSAC to find inliers/outliers.
+    Returns two boolean masks: inliers/outliers.
     """
     ransac = RANSACRegressor(random_state=42)
     ransac.fit(X, y)
@@ -52,13 +52,13 @@ def detect_outliers_ransac(X, y):
     return outlier_mask, inlier_mask
 
 # --------------------------------------------------------------
-# 2) AJOUT POSSIBLE : Validation croisée pour la régression multiple
+# 2) POSSIBLE ADDITION: Cross-validation for multiple regression
 # --------------------------------------------------------------
 
 def multiple_regression_cross_val(X, y, n_splits=3):
     """
-    Effectue une validation croisée KFold sur la régression multiple OLS
-    et renvoie la moyenne du R² (ou MSE) sur les folds.
+    Performs KFold cross-validation on OLS multiple regression
+    and returns mean R² (or MSE) across folds.
     """
     kf = KFold(n_splits=n_splits, shuffle=True, random_state=42)
     scores = []
@@ -67,15 +67,15 @@ def multiple_regression_cross_val(X, y, n_splits=3):
         X_train, X_test = X[train_idx], X[test_idx]
         y_train, y_test = y[train_idx], y[test_idx]
 
-        # Ajustement OLS
+        # OLS fit
         X_train_ones = np.column_stack((np.ones(len(X_train)), X_train))
         beta, _, _, _ = np.linalg.lstsq(X_train_ones, y_train, rcond=None)
 
-        # Prédiction
+        # Prediction
         X_test_ones = np.column_stack((np.ones(len(X_test)), X_test))
         y_pred = X_test_ones @ beta
 
-        # On calcule le R²
+        # Calculate R²
         ss_res = np.sum((y_test - y_pred)**2)
         ss_tot = np.sum((y_test - np.mean(y_test))**2) + 1e-10
         r2 = 1 - ss_res/ss_tot
@@ -84,26 +84,26 @@ def multiple_regression_cross_val(X, y, n_splits=3):
     return np.mean(scores), np.std(scores)
 
 # --------------------------------------------------------------
-# 3) AJOUT POSSIBLE : Monte Carlo élargi (perturber aussi X,y)
+# 3) POSSIBLE ADDITION: Extended Monte Carlo (perturb both X,y)
 # --------------------------------------------------------------
 
 def monte_carlo_data_perturbation(X, y,
                                   n_sim=5000,
-                                  x_std=0.01,  # Ecart-type 'fictif' pour les variables X
-                                  y_std=20.0,  # Ecart-type 'fictif' pour la date en y
+                                  x_std=0.01,  # 'Fictitious' standard deviation for X variables
+                                  y_std=20.0,  # 'Fictitious' standard deviation for dates in y
                                   random_state=42):
     """
-    Génère des échantillons simulés en perturbant X et y autour des valeurs
-    observées, puis calcule la distribution des dates prédites (ou du R²).
-    x_std, y_std : contrôlent l'ampleur des perturbations.
-    Retourne la liste des R² simulés, par ex.
+    Generates simulated samples by perturbing X and y around observed
+    values, then calculates the distribution of predicted dates (or R²).
+    x_std, y_std: control the magnitude of perturbations.
+    Returns list of simulated R² values, for example.
     """
     rng = np.random.default_rng(seed=random_state)
     n = len(y)
     r2_list = []
 
     for _ in range(n_sim):
-        # On crée des X' et y' perturbés
+        # Create perturbed X' and y'
         X_pert = X + rng.normal(loc=0.0, scale=x_std, size=X.shape)
         y_pert = y + rng.normal(loc=0.0, scale=y_std, size=n)
 
@@ -111,7 +111,7 @@ def monte_carlo_data_perturbation(X, y,
         X_ones = np.column_stack((np.ones(len(X_pert)), X_pert))
         beta, _, _, _ = np.linalg.lstsq(X_ones, y_pert, rcond=None)
 
-        # Prédiction & R²
+        # Prediction & R²
         y_pred = X_ones @ beta
         ss_res = np.sum((y_pert - y_pred)**2)
         ss_tot = np.sum((y_pert - np.mean(y_pert))**2)
@@ -121,11 +121,11 @@ def monte_carlo_data_perturbation(X, y,
     return r2_list
 
 # --------------------------------------------------------------
-# Fichier principal pour orchestrer les analyses
+# Main file to orchestrate analyses
 # --------------------------------------------------------------
 
 def main():
-    # --- 1) Données issues de l'article de Fanti (Table 2) ---
+    # --- 1) Data from Fanti's article (Table 2) ---
     samples = {
         'B':   {'date': 2000, 'sigma_r': 1076, 'Ef': 24.8, 'Ei': 32.2, 'eta_d': 4.8,  'eta_i': 1.6},
         'DII': {'date': 1000, 'sigma_r': 678,  'Ef': 19.0, 'Ei': 23.3, 'eta_d': 5.3,  'eta_i': 3.3},
@@ -133,15 +133,15 @@ def main():
         'FII': {'date': 65,   'sigma_r': 150,   'Ef': 7.38, 'Ei': 9.67, 'eta_d': 7.9,  'eta_i': 3.7},
         'NII': {'date': -250, 'sigma_r': 119,   'Ef': 4.55, 'Ei': 6.88, 'eta_d': 8.0,  'eta_i': 4.6},
         'E':   {'date': -400, 'sigma_r': 140,   'Ef': 4.34, 'Ei': 2.98, 'eta_d': 8.5,  'eta_i': 3.3}
-        # ... etc., selon vos besoins ...
+        # ... etc., according to your needs ...
     }
 
-    # On construit X et y pour la régression multiple, par ex.
-    # Variables: ln(sigma_r), ln(Ei), eta_i (exemple standard)
-    # On ignore or on skip si la donnée n'est pas dispo
+    # Build X and y for multiple regression, e.g.
+    # Variables: ln(sigma_r), ln(Ei), eta_i (standard example)
+    # Ignore or skip if data is not available
     data_list = []
     for s in samples.values():
-        # On filtre les données manquantes si nécessaire
+        # Filter missing data if necessary
         data_list.append([
             np.log(s['sigma_r']),
             np.log(s['Ei']),
@@ -150,15 +150,15 @@ def main():
     X = np.array(data_list)
     y = np.array([s['date'] for s in samples.values()])
 
-    # --- 2) Exemple d'exclusion d'outliers
+    # --- 2) Example of outlier exclusion
     outliers_mask, inliers_mask = detect_outliers_ransac(X, y)
-    print(f"Nombre d'outliers détectés (RANSAC) : {np.sum(outliers_mask)}")
+    print(f"Number of outliers detected (RANSAC): {np.sum(outliers_mask)}")
     X_in = X[inliers_mask]
     y_in = y[inliers_mask]
 
-# --- 3) Régression multiple + impression des résultats
+# --- 3) Multiple regression + print results
     mult_reg = FantiMultipleRegression(samples)
-    # On n'a pas modifié la classe, mais si vous voulez la restreindre aux inliers :
+    # We haven't modified the class, but if you want to restrict to inliers:
     mult_reg.X = np.column_stack((np.ones(len(X_in)), X_in[:,0], X_in[:,1], X_in[:,2]))
     mult_reg.y = y_in
 
@@ -166,47 +166,47 @@ def main():
     mult_reg.print_results()
     mult_reg.plot_fit()
 
-# --- 4) Validation croisée sur la régression multiple
+# --- 4) Cross-validation on multiple regression
     mean_r2_cv, std_r2_cv = multiple_regression_cross_val(X_in, y_in, n_splits=2)
-    print(f"R² moyen en CV (inliers): {mean_r2_cv:.3f} ± {std_r2_cv:.3f}")
+    print(f"Mean R² in CV (inliers): {mean_r2_cv:.3f} ± {std_r2_cv:.3f}")
 
-# --- 5) Analyse de puissance sur l'échantillon réduit
+# --- 5) Power analysis on reduced sample
     power = PowerAnalysis(n_samples=len(y_in))
     power.print_results()
 
-# --- 6) Exemple d'analyse Monte Carlo élargie
-    # Perturber X et y autour de x_std=0.05, y_std=50 par ex. (à adapter)
+# --- 6) Example of extended Monte Carlo analysis
+    # Perturb X and y around x_std=0.05, y_std=50 e.g. (adjust as needed)
     r2_distrib = monte_carlo_data_perturbation(X_in, y_in, n_sim=1000,
                                                x_std=0.05, y_std=50.0)
-    print(f"R² moyen via Monte Carlo data-perturbation : {np.mean(r2_distrib):.3f}")
+    print(f"Mean R² via Monte Carlo data-perturbation: {np.mean(r2_distrib):.3f}")
 
 
-# --- 7) Analyse croisée additionnelle ---
-    print("\n=== Analyse de validation croisée approfondie ===")
+# --- 7) Additional cross-analysis ---
+    print("\n=== In-depth cross-validation analysis ===")
     try:
-        # Analyse avec FantiCrossedAnalysis sur les données non filtrées
-        print("\nRésultats sur données complètes :")
+        # Analysis with FantiCrossedAnalysis on unfiltered data
+        print("\nResults on complete data:")
         crossed_analysis_full = FantiCrossedAnalysis(X, y, k_folds=min(5, len(X)-1))
         results_full = crossed_analysis_full.run_complete_analysis()
         crossed_analysis_full.print_results()
 
-        # Analyse avec FantiCrossedAnalysis sur les données filtrées
-        if len(X_in) >= 3:  # Vérifie qu'il reste assez de données
-            print("\nRésultats sur données filtrées (RANSAC) :")
+        # Analysis with FantiCrossedAnalysis on filtered data
+        if len(X_in) >= 3:  # Check that enough data remains
+            print("\nResults on filtered data (RANSAC):")
             crossed_analysis_in = FantiCrossedAnalysis(X_in, y_in, k_folds=min(5, len(X_in)-1))
             results_in = crossed_analysis_in.run_complete_analysis()
             crossed_analysis_in.print_results()
         else:
-            print("\nTrop peu d'échantillons après filtrage pour l'analyse croisée approfondie")
+            print("\nToo few samples after filtering for in-depth cross-analysis")
 
     except Exception as e:
-        print(f"Erreur lors de l'analyse croisée approfondie : {str(e)}")
+        print(f"Error during in-depth cross-analysis: {str(e)}")
 
-    # Petite illustration de distribution
+    # Small distribution illustration
     plt.hist(r2_distrib, bins=30, alpha=0.6, color='b')
-    plt.title("Distribution du R² en perturbant X et y (Monte Carlo)")
+    plt.title("R² Distribution when perturbing X and y (Monte Carlo)")
     plt.xlabel("R²")
-    plt.ylabel("Fréquence")
+    plt.ylabel("Frequency")
     # plt.show()
     plt.savefig("figure3.png", dpi=300, bbox_inches="tight")
     plt.close()
