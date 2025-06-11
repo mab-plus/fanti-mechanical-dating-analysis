@@ -15,6 +15,20 @@ All analyses support a methodology-driven interpretation of the data, in line wi
 > **Author:** Michel Bakhtaoui  
 > **DOI (Zenodo):** **
 
+## Data Sources
+
+### Fanti et al. (2015) Mechanical Data
+The file `data/fanti_mechanical_data.csv` contains mechanical properties of ancient flax fibers from:
+- Fanti, G., Malfi, P. & Crosilla, F. (2015). Mechanical and opto-chemical dating of the Turin Shroud. 
+  MATEC Web of Conferences, 36, 01001. DOI: 10.1051/matecconf/20153601001
+
+This data enables comparative analysis between empirical regression approaches and our physics-based viscoelastic model.
+
+### Running the Comparison
+```bash
+cd scripts/modeling
+python fanti_comparison.py
+
 ## 🗂 Repository Structure
 
 ```
@@ -35,6 +49,7 @@ scripts/
 
 Each script generates one or more of the following figures used in the article:
 
+```markdown
 | Figure | Description  | Script  |
 |--------|--------------------------------------------------|---------------------------------|
 | 1  | Age vs mechanical resistance (Maxwell)   | `modelisation.py`   |
@@ -43,7 +58,8 @@ Each script generates one or more of the following figures used in the article:
 | 4  | Posterior age distribution (Bayesian)| `modelisation.py`   |
 | 5  | Variance Inflation Factor (VIF)  | `fanti_multiple_regression.py`  |
 | 6  | MCMC trace and convergence (Bayesian inference)  | `modelisation.py`   |
-
+| **7** | **Fanti data vs Viscoelastic model comparison** | **`fanti_comparison.py`** |
+```
 All figures are saved at 300 dpi and exported in PNG format.
 
 ## 🧪 Requirements
