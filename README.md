@@ -1,100 +1,137 @@
-# Fanti Mechanical Dating Analysis
 
-[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.15636193.svg)](https://doi.org/10.5281/zenodo.15636193)
+# Fanti Mechanical Dating — Reproducible Evaluation Codebase
 
-This repository contains the full set of scripts used in the critical evaluation of the mechanical and opto-chemical dating method proposed by Fanti et al. (2015). The project provides a dual approach:
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.15644577.svg)](https://doi.org/10.5281/zenodo.15644577)
 
-- **Statistical reanalysis** of the multilinear regression model
-- **Viscoelastic modelling** using a multi-branch Maxwell model calibrated on ancient flax fibre data
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.15098838.svg)](https://doi.org/10.5281/zenodo.15098838)
 
-All analyses support a methodology-driven interpretation of the data, in line with radiocarbon dating standards.
+Python code, data and figures supporting the article  
+**“Critical Assessment of Mechanical Dating Methods for Ancient Flax Fibres: Viscoelastic Modelling Versus Multilinear Regression.”**
 
-## 📄 Associated Article
+---
 
-> **Title:** *Critical Assessment of Mechanical Dating Methods for Ancient Flax Fibres: Viscoelastic Modelling Versus Multilinear Regression*  
-> **Author:** Michel Bakhtaoui  
-> **DOI (Zenodo):** *[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.15636193.svg)](https://doi.org/10.5281/zenodo.15636193)* **
+## 📝 Associated Article
 
-## Data Sources
+> **Title :** *Critical Assessment of Mechanical Dating Methods for Ancient Flax Fibres: Viscoelastic Modelling Versus Multilinear Regression*  
+> **Author :** Michel Bakhtaoui  
+> **Version DOI :** 10.5281/zenodo.15644577
+> **Concept DOI :** 10.5281/zenodo.15098838 (always resolves to the latest release)
 
-### Fanti et al. (2015) Mechanical Data
-The file `data/fanti_mechanical_data.csv` contains mechanical properties of ancient flax fibers from:
-- Fanti, G., Malfi, P. & Crosilla, F. (2015). Mechanical and opto-chemical dating of the Turin Shroud. 
-  MATEC Web of Conferences, 36, 01001. DOI: 10.1051/matecconf/20153601001
+---
 
-This data enables comparative analysis between empirical regression approaches and our physics-based viscoelastic model.
+## 🔍 Project Overview
 
-### Running the Comparison
-```bash
-cd scripts/modeling
-python fanti_comparison.py
+This repository contains:
+
+- **Statistical re-analysis** of Fanti et al. (2015) mechanical dating data.  
+- **Physics-based viscoelastic modelling** (multi-branch Maxwell).  
+- **Bayesian inference** and Monte-Carlo uncertainty propagation.  
+- **Reproducible figures** and scripts used in the manuscript.
+
+All code is MIT-licensed and fully reproducible.
+
+---
 
 ## 🗂 Repository Structure
+```text
+.
+├── CITATION.cff
+├── data
+│   └── fanti_mechanical_data.csv
+├── LICENSE
+├── README.md
+├── requirements.txt
+└── scripts
+    ├── modeling
+    │   ├── fanti_comparison.py
+    │   ├── figure1.png
+    │   ├── figure2.png
+    │   ├── figure4.png
+    │   ├── figure6.png
+    │   ├── figure_comparison_fanti.png
+    │   └── modelisation.py
+    └── statistical-analysis
+        ├── analysis.py
+        ├── fanti_crossed_analysis.py
+        ├── fanti_cross_validation.py
+        ├── fanti_experiment.py
+        ├── fanti_multiple_regression.py
+        ├── fanti_power_analysis.py
+        ├── fanti_uncertainty_propagation.py
+        ├── figure2.png
+        ├── figure3.png
+        └── figure5.png
+```
 
-```
-scripts/
-├── modeling
-│   └── modelisation.py
-└── statistical-analysis
-    ├── analysis.py
-    ├── fanti_crossed_analysis.py
-    ├── fanti_cross_validation.py
-    ├── fanti_experiment.py
-    ├── fanti_multiple_regression.py
-    ├── fanti_power_analysis.py
-    ├── fanti_uncertainty_propagation.py
-```
+---
 
 ## 📊 Figures Generated
 
-Each script generates one or more of the following figures used in the article:
+| Figure | Description                                        | Script                              |
+|--------|----------------------------------------------------|-------------------------------------|
+| 1      | Age vs mechanical resistance (Maxwell fit)         | `modelisation.py`                   |
+| 2      | Regression model performance (fit & cross-val)     | `fanti_multiple_regression.py`      |
+| 3      | Monte-Carlo R² distribution                        | `analysis.py`                       |
+| 4      | Posterior age distribution (Bayesian)              | `modelisation.py`                   |
+| 5      | Variance Inflation Factor (VIF)                    | `fanti_multiple_regression.py`      |
+| 6      | MCMC trace & convergence diagnostics               | `modelisation.py`                   |
+| **7**  | **Fanti data vs viscoelastic model comparison**    | **`fanti_comparison.py`**           |
 
-```markdown
-| Figure | Description  | Script  |
-|--------|--------------------------------------------------|---------------------------------|
-| 1  | Age vs mechanical resistance (Maxwell)   | `modelisation.py`   |
-| 2  | Regression model (fit, R², RMSE) | `fanti_multiple_regression.py`  |
-| 3  | Monte Carlo analysis (R² variation)  | `analysis.py`   |
-| 4  | Posterior age distribution (Bayesian)| `modelisation.py`   |
-| 5  | Variance Inflation Factor (VIF)  | `fanti_multiple_regression.py`  |
-| 6  | MCMC trace and convergence (Bayesian inference)  | `modelisation.py`   |
-| **7** | **Fanti data vs Viscoelastic model comparison** | **`fanti_comparison.py`** |
-```
-All figures are saved at 300 dpi and exported in PNG format.
+---
 
-## 🧪 Requirements
+## 🚀 Quick Start
 
-To run the code, install the required Python packages:
-
+### 1 • Installation
 ```bash
-pip install -r requirements.txt
+git clone https://github.com/mab-plus/fanti-mechanical-dating-analysis.git
+cd fanti-mechanical-dating-analysis
+python -m pip install -r requirements.txt
 ```
 
-Basic packages:
-- `numpy`
-- `scipy`
-- `matplotlib`
-- `arviz`
-- `pandas`
-- `scikit-learn`
-- `seaborn`
-
-## ▶️ How to Run
-
-Example:
-
+### 2 • Run full viscoelastic model
 ```bash
-python scripts/modeling/modelisation.py
+cd scripts/modeling
+python modelisation.py          # generates Figures 1, 4, 6
 ```
 
-Figures will be saved automatically in the working directory. See individual scripts for more options.
+### 3 • Reproduce Fanti cross-validation
+```bash
+cd ../statistical-analysis
+python fanti_cross_validation.py  # generates cross-val metrics & Figure 2
+```
 
-## 📜 License
+### 4 • Physics vs empirical comparison
+```bash
+cd ../modeling
+python fanti_comparison.py        # generates Figure 7
+```
 
-MIT License — see the [LICENSE](LICENSE) file.
+All generated figures are saved in the corresponding script folders.
 
-## 📬 Contact
+---
 
-Michel Bakhtaoui  
-Aix-Marseille Université  
-[ORCID: 0009-0006-6710-7787](https://orcid.org/0009-0006-6710-7787)
+## 📚 Data Sources
+
+| Dataset | Location | Licence |
+|---------|----------|---------|
+| Mechanical data (Fanti et al. 2015, 9 samples) | `data/fanti_mechanical_data.csv` | CC-BY |
+| Example Maxwell parameters                     | in-code (`modelisation.py`)      | MIT   |
+
+---
+
+## 🤝 How to Cite
+
+> Bakhtaoui M. (2025). *Fanti Mechanical Dating Analysis — v2.2.0*. Zenodo.  
+> https://doi.org/10.5281/zenodo.15644577
+
+---
+
+## 📑 Licence
+
+This project is released under the **MIT License** (see `LICENSE`).
+
+---
+
+## 🙏 Acknowledgements
+
+Thanks to Dr Alain Bourmaud for providing nano-indentation data, and to the open-source community (NumPy, SciPy, Matplotlib, etc.).
