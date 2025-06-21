@@ -1,19 +1,20 @@
-cff-version: 1.2.2
-message: "If you use this software, please cite it using the metadata below."
+cff-version: 1.2.0
+message: "If you use this software, please cite it as below."
 title: "Fanti Mechanical Dating Analysis"
 version: "2.2.2"
-doi: 10.5281/zenodo.15712379
+doi: 10.5281/zenodo.15098838
+date-released: 2025-06-21
 authors:
   - family-names: Bakhtaoui
     given-names: Michel
     orcid: https://orcid.org/0009-0006-6710-7787
-    affiliation: Aix-Marseille Université
-date-released: 2025-06-21
 url: https://github.com/mab-plus/fanti-mechanical-dating-analysis
 keywords:
   - archaeometry
   - flax fibres
-  - viscoelasticity
-  - regression analysis
-  - dating methods
-  - Monte Carlo
+  - mechanical ageing
+  - viscoelastic modelling
+  - Maxwell model
+  - Bayesian inference
+  - multilinear regression
+  - Turin Shroud
