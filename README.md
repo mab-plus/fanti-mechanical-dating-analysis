@@ -119,8 +119,8 @@ All generated figures are saved in the corresponding script folders.
 
 ## 🤝 How to Cite
 
-> Bakhtaoui M. (2025). *Fanti Mechanical Dating Analysis — v2.2.0*. Zenodo.  
-> https://doi.org/10.5281/zenodo.15644577
+> Bakhtaoui M. (2025). *Fanti Mechanical Dating Analysis — v2.2.2*. Zenodo.  
+> https://doi.org/10.5281/zenodo.15712379 
 
 ---
 
