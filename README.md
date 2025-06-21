@@ -12,7 +12,7 @@ Python code, data and figures supporting the article
 
 > **Title :** *Critical Assessment of Mechanical Dating Methods for Ancient Flax Fibres: Viscoelastic Modelling Versus Multilinear Regression*  
 > **Author :** Michel Bakhtaoui  
-> **Version DOI :** 10.5281/zenodo.15711882
+> **Version DOI :** 10.5281/zenodo.15712379
 > **Concept DOI :** 10.5281/zenodo.15098838 (always resolves to the latest release)
 
 ---
