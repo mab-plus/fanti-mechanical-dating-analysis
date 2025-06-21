@@ -1,7 +1,7 @@
 
 # Fanti Mechanical Dating — Reproducible Evaluation Codebase
 
-[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.15711882.svg)](https://doi.org/10.5281/zenodo.15711882)
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.15712379.svg)](https://doi.org/10.5281/zenodo.15712379)
 
 Python code, data and figures supporting the article  
 **“Critical Assessment of Mechanical Dating Methods for Ancient Flax Fibres: Viscoelastic Modelling Versus Multilinear Regression.”**
