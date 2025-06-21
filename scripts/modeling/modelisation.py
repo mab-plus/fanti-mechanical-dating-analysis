@@ -438,7 +438,7 @@ with pm.Model() as bayes_model:
     trace_bayes = pm.sample(2000, tune=5000, target_accept=0.999, return_inferencedata=True, nuts={"max_treedepth": 15}, random_seed=42)
 
 # plt.show()
-az.plot_trace(trace_bayes)  # Make sure trace contains A1, A2, tau1, tau2
+az.plot_trace(trace_bayes, compact=False, rug=True, backend_kwargs={'constrained_layout': True})  # Make sure trace contains A1, A2, tau1, tau2
 plt.savefig("figure6.png", dpi=300, bbox_inches="tight")
 plt.close()
 
