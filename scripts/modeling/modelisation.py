@@ -327,6 +327,32 @@ for idx, row in df_samples.iterrows():
         arrowprops=dict(arrowstyle="->", connectionstyle="arc3", color="gray"),
         bbox=dict(boxstyle="round,pad=0.3", fc="white", ec="black", alpha=0.7)
     )
+
+ax = plt.gca()
+
+# TS mechanical target (horizontal ref)
+ax.axhline(243.22, ls="--", lw=1.4, alpha=0.9)  # σ_r in MPa  ← axhline
+# ^14C vertical ref + uncertainty band  ← axvline / axvspan
+ax.axvline(1325, ls=":", lw=1.4, alpha=0.9, zorder=90)
+ax.axvspan(1325-65, 1325+65, alpha=0.15, edgecolor="none", zorder=10)
+
+# ^14C point on the target strength with horizontal error bar  ← errorbar
+ax.errorbar(1325, 243.22, xerr=65, fmt="o", ms=8,
+            mfc="gold", mec="k", mew=1.3, capsize=3, zorder=100,
+            label=r"TS $^{14}$C 1325$\pm$65 AD")
+
+# tidy label (optional)  ← annotate
+ax.annotate(r"TS $^{14}$C 1325$\pm$65 AD",
+            xy=(1325, 243.22), xytext=(1325+180, 243.22+80),
+            arrowprops=dict(arrowstyle="->", lw=1),
+            bbox=dict(boxstyle="round,pad=0.25", fc="white", alpha=0.7),
+            ha="left", va="bottom", zorder=101)
+
+# refresh legend without duplicates
+h, l = ax.get_legend_handles_labels()
+ax.legend(dict(zip(l, h)).values(), dict(zip(l, h)).keys(), frameon=False)
+
+
 plt.tight_layout()
 fig = plt.gcf()  # Get current figure object
 fig.savefig("figure1.png", dpi=300, bbox_inches="tight")

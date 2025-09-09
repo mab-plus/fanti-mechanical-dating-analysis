@@ -15,6 +15,28 @@ import os
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from modeling.modelisation import multi_exponential_env_fourier, popt
 
+def add_ts_c14_refs(ax, sigma_ts=243.22, c14_age=1325, c14_err=65,
+                    show_point=True, annotate=True):
+    # Cibles (TS mécanique + ^14C)
+    ax.axhline(sigma_ts, ls="--", lw=1.4, alpha=0.9)                          # TS (horiz.)  :contentReference[oaicite:1]{index=1}
+    ax.axvline(c14_age, ls=":", lw=1.4, alpha=0.9, zorder=90)                  # ^14C (vert.)  :contentReference[oaicite:2]{index=2}
+    ax.axvspan(c14_age-c14_err, c14_age+c14_err, alpha=0.15, zorder=10)        # bande ±err   :contentReference[oaicite:3]{index=3}
+
+    if show_point:
+        ax.errorbar(c14_age, sigma_ts, xerr=c14_err, fmt="o", ms=8,            # point ^14C  :contentReference[oaicite:4]{index=4}
+                    mfc="gold", mec="k", mew=1.3, capsize=3, zorder=100,
+                    label=r"TS $^{14}$C 1325$\pm$65 AD")
+    if annotate:
+        ax.annotate(r"TS $^{14}$C 1325$\pm$65 AD",                             # étiquette   :contentReference[oaicite:5]{index=5}
+                    xy=(c14_age, sigma_ts), xytext=(c14_age+180, sigma_ts+80),
+                    arrowprops=dict(arrowstyle="->", lw=1),
+                    bbox=dict(boxstyle="round,pad=0.25", fc="white", alpha=0.7),
+                    ha="left", va="bottom", zorder=101)
+
+    # Légende sans doublons
+    h, l = ax.get_legend_handles_labels()
+    ax.legend(dict(zip(l, h)).values(), dict(zip(l, h)).keys(), frameon=False)
+
 def load_fanti_data():
     """Load Fanti et al. (2015) mechanical data"""
     df = pd.read_csv('../../data/fanti_mechanical_data.csv')
@@ -43,6 +65,8 @@ def plot_model_comparison():
     ax1.set_title('Comparison: Fanti Data vs Viscoelastic Model', fontsize=14)
     ax1.legend(fontsize=11)
     ax1.grid(True, alpha=0.3)
+
+    add_ts_c14_refs(ax1)
     
     # Plot 2: Log scale to show non-linearity
     ax2.scatter(df_fanti['Age_AD'], df_fanti['sigma_r_MPa'], 
@@ -55,6 +79,8 @@ def plot_model_comparison():
     ax2.set_title('Log Scale View: Highlighting Non-linear Behavior', fontsize=14)
     ax2.legend(fontsize=11)
     ax2.grid(True, alpha=0.3)
+
+    add_ts_c14_refs(ax2)
     
     plt.tight_layout()
     plt.savefig('figure_comparison_fanti.png', dpi=300, bbox_inches='tight')
