@@ -101,6 +101,12 @@ cd ../modeling
 python fanti_comparison.py        # generates Figure 7
 ```
 
+## Quick reproduce
+```bash
+pip install -r requirements.txt
+python scripts/modeling/modelisation.py
+```
+
 All generated figures are saved in the corresponding script folders.
 
 ---
