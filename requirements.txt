@@ -4,4 +4,6 @@ matplotlib
 pandas
 seaborn
 scikit-learn
+statsmodels
 arviz
+# pymc  # optional: for Bayesian variant
