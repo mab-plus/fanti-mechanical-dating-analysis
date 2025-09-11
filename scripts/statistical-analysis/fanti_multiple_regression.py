@@ -1,5 +1,6 @@
 import numpy as np
 import matplotlib.pyplot as plt
+from matplotlib.lines import Line2D
 from scipy import stats
 from statsmodels.regression.linear_model import OLS
 from statsmodels.robust.robust_linear_model import RLM
@@ -98,15 +99,33 @@ class FantiMultipleRegression:
         plt.savefig("figure2.png", dpi=300, bbox_inches="tight")
         plt.close()
 
-        names = list(self.vif.keys())
+        # noms/valeurs
+        names  = [r'$\ln(\sigma_r)$', r'$\ln(E_f)$', r'$\eta_i$']
         values = list(self.vif.values())
 
-        plt.figure(figsize=(6, 4))
-        bars = plt.bar(names, values, color='skyblue')
-        plt.axhline(y=10, color='red', linestyle='--', label='VIF = 10 threshold')
-        plt.ylabel("VIF")
-        plt.title("Variance Inflation Factors (VIF)")
-        plt.legend()
-        plt.tight_layout()
-        plt.savefig("figure5.png", dpi=300, bbox_inches="tight")
-        plt.close()
+        fig, ax = plt.subplots(figsize=(6, 4))
+
+        # barres
+        bars = ax.bar(names, values, color='skyblue')
+
+        # limites Y (méthode Axes, pas plt.set_ylim)
+        ax.set_ylim(0, 1.15 * max(values))
+
+        # seuils VIF
+        ax.axhline(4,  ls='--', lw=1,  color='0.4')
+        ax.axhline(10, ls='--', lw=1.5, color='r', dashes=(6, 3), label='VIF = 10')
+
+        # labels au-dessus des barres (padding en points)
+        ax.bar_label(bars, fmt='%.1f', padding=3)
+
+        # habillage
+        ax.set_ylabel("VIF")
+        ax.set_title("Variance Inflation Factors (VIF)")
+        handles = [Line2D([0],[0], ls='--', color='0.4'), Line2D([0],[0], ls='--', color='r', dashes=(6,3))]
+        labels  = ['VIF = 4 (investigate)', 'VIF = 10 (serious)']
+        ax.legend(handles, labels, title='Thresholds')
+
+        fig.tight_layout()
+        fig.savefig("figure5.png", dpi=300, bbox_inches="tight")
+        plt.close(fig)
+
