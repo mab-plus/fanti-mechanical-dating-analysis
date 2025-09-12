@@ -8,9 +8,29 @@ and integration of a complete Bayesian approach.
 """
 
 import numpy as np
+import matplotlib as mpl
 import matplotlib.pyplot as plt
 import pandas as pd
 from scipy.optimize import least_squares, fsolve
+
+# 1) PDF vectoriel avec texte "vrai" (polices embarquées)
+mpl.rcParams['pdf.fonttype'] = 42
+mpl.rcParams['ps.fonttype']  = 42
+mpl.rcParams['svg.fonttype'] = 'none'
+
+def save_figure(fig, basename, kind='combo', width_mm=90, height_mm=None, min_height_in=3.0):
+    w_in = width_mm / 25.4
+    w0, h0 = fig.get_size_inches()
+    if height_mm is not None:
+        h_in = height_mm / 25.4
+    else:
+        aspect = (h0 / w0) if w0 else 0.75
+        h_in = max(w_in * aspect, min_height_in)   # <-- évite les panneaux “écrasés”
+    # fig.set_size_inches(w_in, h_in, forward=True)
+    fig.tight_layout()
+    fig.savefig(f"{basename}.pdf", bbox_inches="tight")             # PDF vectoriel
+    dpi = 1000 if kind == 'lineart' else 600
+    fig.savefig(f"{basename}.png", dpi=dpi, bbox_inches="tight")    # PNG conforme
 
 # =======================
 # 1) Base model parameters
@@ -355,9 +375,10 @@ ax.legend(dict(zip(l, h)).values(), dict(zip(l, h)).keys(), frameon=False)
 
 plt.tight_layout()
 fig = plt.gcf()  # Get current figure object
-fig.savefig("figure1.png", dpi=300, bbox_inches="tight")
+# fig.savefig("figure1.png", dpi=300, bbox_inches="tight")
+save_figure(fig, "figure1", kind='lineart', width_mm=90)
+
 plt.close()
-# plt.show()
 
 # =============================
 # Date prediction from mechanical value (Approach 1)
@@ -404,7 +425,8 @@ plt.ylabel("Humidity (%)")
 plt.title(f"Sensitivity analysis for σ = {sigma_input} MPa")
 plt.tight_layout()
 fig = plt.gcf()  # Get current figure object
-fig.savefig("figure2.png", dpi=300, bbox_inches="tight")
+# fig.savefig("figure2.png", dpi=300, bbox_inches="tight")
+save_figure(fig, "figure2", kind='combo', width_mm=90)
 plt.close()
 # plt.show()
 
@@ -465,7 +487,9 @@ with pm.Model() as bayes_model:
 
 # plt.show()
 az.plot_trace(trace_bayes, compact=False, rug=True, backend_kwargs={'constrained_layout': True})  # Make sure trace contains A1, A2, tau1, tau2
-plt.savefig("figure6.png", dpi=300, bbox_inches="tight")
+# plt.savefig("figure6.png", dpi=300, bbox_inches="tight")
+fig = plt.gcf()
+save_figure(fig, "figure6", kind='lineart', width_mm=90)
 plt.close()
 
 print("\n=== Approach 4 (Bayesian): Parameter summary ===")
@@ -519,7 +543,9 @@ plt.xlabel("Predicted date (AD)")
 plt.ylabel("Frequency")
 plt.title("Posterior distribution of predicted dates (Bayesian)")
 plt.tight_layout()
+
 fig = plt.gcf()  # Get current figure object
-fig.savefig("figure4.png", dpi=300, bbox_inches="tight")
+# fig.savefig("figure4.png", dpi=300, bbox_inches="tight")
+save_figure(fig, "figure4", kind='lineart', width_mm=90)
 plt.close()
 # plt.show()

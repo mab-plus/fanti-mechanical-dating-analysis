@@ -8,8 +8,29 @@ Shows the fundamental differences between empirical and physics-based approaches
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
+import matplotlib as mpl
 import sys
 import os
+
+# 1) PDF vectoriel avec texte "vrai" (polices embarquées)
+mpl.rcParams['pdf.fonttype'] = 42
+mpl.rcParams['ps.fonttype']  = 42
+mpl.rcParams['svg.fonttype'] = 'none'
+
+def save_figure(fig, basename, kind='combo', width_mm=90, height_mm=None, min_height_in=3.0):
+    w_in = width_mm / 25.4
+    w0, h0 = fig.get_size_inches()
+    if height_mm is not None:
+        h_in = height_mm / 25.4
+    else:
+        aspect = (h0 / w0) if w0 else 0.75
+        h_in = max(w_in * aspect, min_height_in)   # <-- évite les panneaux “écrasés”
+    # fig.set_size_inches(w_in, h_in, forward=True)
+    fig.tight_layout()
+    fig.savefig(f"{basename}.pdf", bbox_inches="tight")             # PDF vectoriel
+    dpi = 1000 if kind == 'lineart' else 600
+    fig.savefig(f"{basename}.png", dpi=dpi, bbox_inches="tight")    # PNG conforme
+
 
 # Add parent directory to path to import from modelisation
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -83,7 +104,9 @@ def plot_model_comparison():
     add_ts_c14_refs(ax2)
     
     plt.tight_layout()
-    plt.savefig('figure_comparison_fanti.png', dpi=300, bbox_inches='tight')
+    fig = plt.gcf()
+    save_figure(fig, "figure_comparison_fanti", kind='lineart', width_mm=90)
+    # plt.savefig('figure_comparison_fanti.png', dpi=300, bbox_inches='tight')
     plt.close()
     
     print("Comparison figure saved as 'figure_comparison_fanti.png'")

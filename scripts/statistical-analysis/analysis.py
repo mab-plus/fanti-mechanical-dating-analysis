@@ -1,5 +1,6 @@
 # Standard imports
 import numpy as np
+import matplotlib as mpl
 import matplotlib.pyplot as plt
 import warnings
 from scipy.stats import zscore
@@ -10,12 +11,30 @@ from sklearn.model_selection import KFold
 from sklearn.exceptions import ConvergenceWarning
 
 # Local imports
-from fanti_experiment import FantiExperiment
 from fanti_multiple_regression import FantiMultipleRegression
 from fanti_uncertainty_propagation import FantiUncertaintyPropagation
 from fanti_power_analysis import PowerAnalysis
 from fanti_cross_validation import CrossValidation
 from fanti_crossed_analysis import FantiCrossedAnalysis
+
+# 1) PDF vectoriel avec texte "vrai" (polices embarquées)
+mpl.rcParams['pdf.fonttype'] = 42
+mpl.rcParams['ps.fonttype']  = 42
+mpl.rcParams['svg.fonttype'] = 'none'
+
+def save_figure(fig, basename, kind='combo', width_mm=90, height_mm=None, min_height_in=3.0):
+    w_in = width_mm / 25.4
+    w0, h0 = fig.get_size_inches()
+    if height_mm is not None:
+        h_in = height_mm / 25.4
+    else:
+        aspect = (h0 / w0) if w0 else 0.75
+        h_in = max(w_in * aspect, min_height_in)   # <-- évite les panneaux “écrasés”
+    # fig.set_size_inches(w_in, h_in, forward=True)
+    fig.tight_layout()
+    fig.savefig(f"{basename}.pdf", bbox_inches="tight")             # PDF vectoriel
+    dpi = 1000 if kind == 'lineart' else 600
+    fig.savefig(f"{basename}.png", dpi=dpi, bbox_inches="tight")    # PNG conforme
 
 # --------------------------------------------------------------
 # 1) POSSIBLE ADDITION: Simple outlier management (example)
@@ -207,15 +226,11 @@ def main():
     plt.title("R² Distribution when perturbing X and y (Monte Carlo)")
     plt.xlabel("R²")
     plt.ylabel("Frequency")
-    # plt.show()
-    plt.savefig("figure3.png", dpi=300, bbox_inches="tight")
+
+    fig = plt.gcf()
+    save_figure(fig, "figure3", kind='lineart', width_mm=90)
+
     plt.close()
-
-
-# if __name__ == "__main__":
-#     with warnings.catch_warnings():
-#         warnings.filterwarnings("ignore", category=ConvergenceWarning)
-#         main()
 
 from sklearn.exceptions import UndefinedMetricWarning, ConvergenceWarning
 

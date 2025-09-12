@@ -1,5 +1,6 @@
 import numpy as np
 import matplotlib.pyplot as plt
+import matplotlib as mpl
 from matplotlib.lines import Line2D
 from scipy import stats
 from statsmodels.regression.linear_model import OLS
@@ -7,6 +8,25 @@ from statsmodels.robust.robust_linear_model import RLM
 from statsmodels.tools import add_constant
 from statsmodels.stats.outliers_influence import variance_inflation_factor
 from statsmodels.stats.diagnostic import het_breuschpagan
+
+# 1) PDF vectoriel avec texte "vrai" (polices embarquées)
+mpl.rcParams['pdf.fonttype'] = 42
+mpl.rcParams['ps.fonttype']  = 42
+mpl.rcParams['svg.fonttype'] = 'none'
+
+def save_figure(fig, basename, kind='combo', width_mm=90, height_mm=None, min_height_in=3.0):
+    w_in = width_mm / 25.4
+    w0, h0 = fig.get_size_inches()
+    if height_mm is not None:
+        h_in = height_mm / 25.4
+    else:
+        aspect = (h0 / w0) if w0 else 0.75
+        h_in = max(w_in * aspect, min_height_in)   # <-- évite les panneaux “écrasés”
+    # fig.set_size_inches(w_in, h_in, forward=True)
+    fig.tight_layout()
+    fig.savefig(f"{basename}.pdf", bbox_inches="tight")             # PDF vectoriel
+    dpi = 1000 if kind == 'lineart' else 600
+    fig.savefig(f"{basename}.png", dpi=dpi, bbox_inches="tight")    # PNG conforme
 
 class FantiMultipleRegression:
     def __init__(self, samples, robust=False, weights=None):
@@ -96,7 +116,9 @@ class FantiMultipleRegression:
         plt.legend()
         plt.grid(True)
         # plt.show()
-        plt.savefig("figure2.png", dpi=300, bbox_inches="tight")
+        # plt.savefig("figure2.png", dpi=300, bbox_inches="tight")
+        fig = plt.gcf()
+        save_figure(fig, "figure2b", kind='lineart', width_mm=90)
         plt.close()
 
         # noms/valeurs
@@ -125,7 +147,9 @@ class FantiMultipleRegression:
         labels  = ['VIF = 4 (investigate)', 'VIF = 10 (serious)']
         ax.legend(handles, labels, title='Thresholds')
 
-        fig.tight_layout()
-        fig.savefig("figure5.png", dpi=300, bbox_inches="tight")
+        # fig.tight_layout()
+        # fig.savefig("figure5", dpi=300, bbox_inches="tight")
+        fig = plt.gcf()
+        save_figure(fig, "figure5", kind='lineart', width_mm=90)
         plt.close(fig)
 
