@@ -1,12 +1,12 @@
 cff-version: 1.2.0
 title: Fanti mechanical dating analysis
-version: 2.2.5
-date-released: 2025-09-11
+version: 2.2.6
+date-released: 2025-09-12
 authors:
   - family-names: Bakhtaoui
     given-names: Michel
 url: https://github.com/mab-plus/fanti-mechanical-dating-analysis
-doi: 10.5281/zenodo.17100844
+doi: 10.5281/zenodo.17109317
 identifiers:
   - type: doi
-    value: 10.5281/zenodo.17100844
+    value: 10.5281/zenodo.17109317
