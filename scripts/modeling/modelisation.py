@@ -375,8 +375,7 @@ ax.legend(dict(zip(l, h)).values(), dict(zip(l, h)).keys(), frameon=False)
 
 plt.tight_layout()
 fig = plt.gcf()  # Get current figure object
-# fig.savefig("figure1.png", dpi=300, bbox_inches="tight")
-save_figure(fig, "figure1", kind='lineart', width_mm=90)
+save_figure(fig, "Fig3_maxwell_fit_age_vs_strength", kind='lineart', width_mm=90)
 
 plt.close()
 
@@ -425,10 +424,8 @@ plt.ylabel("Humidity (%)")
 plt.title(f"Sensitivity analysis for σ = {sigma_input} MPa")
 plt.tight_layout()
 fig = plt.gcf()  # Get current figure object
-# fig.savefig("figure2.png", dpi=300, bbox_inches="tight")
-save_figure(fig, "figure2", kind='combo', width_mm=90)
+save_figure(fig, "Fig4_sensitivity_TRH_map", kind='combo', width_mm=90)
 plt.close()
-# plt.show()
 
 # =============================
 # Uncertainty propagation on date via finite difference method (Approach 3)
@@ -487,9 +484,8 @@ with pm.Model() as bayes_model:
 
 # plt.show()
 az.plot_trace(trace_bayes, compact=False, rug=True, backend_kwargs={'constrained_layout': True})  # Make sure trace contains A1, A2, tau1, tau2
-# plt.savefig("figure6.png", dpi=300, bbox_inches="tight")
 fig = plt.gcf()
-save_figure(fig, "figure6", kind='lineart', width_mm=90)
+save_figure(fig, "Fig10_mcmc_traces_posteriors", kind='lineart', width_mm=90)
 plt.close()
 
 print("\n=== Approach 4 (Bayesian): Parameter summary ===")
@@ -545,7 +541,5 @@ plt.title("Posterior distribution of predicted dates (Bayesian)")
 plt.tight_layout()
 
 fig = plt.gcf()  # Get current figure object
-# fig.savefig("figure4.png", dpi=300, bbox_inches="tight")
-save_figure(fig, "figure4", kind='lineart', width_mm=90)
+save_figure(fig, "Fig5_age_posterior_distribution", kind='lineart', width_mm=90)
 plt.close()
-# plt.show()

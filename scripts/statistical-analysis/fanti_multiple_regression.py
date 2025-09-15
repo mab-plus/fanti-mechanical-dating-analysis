@@ -115,10 +115,9 @@ class FantiMultipleRegression:
         plt.title("Observed vs Predicted Comparison (Multiple Regression)")
         plt.legend()
         plt.grid(True)
-        # plt.show()
-        # plt.savefig("figure2.png", dpi=300, bbox_inches="tight")
+
         fig = plt.gcf()
-        save_figure(fig, "figure2b", kind='lineart', width_mm=90)
+        save_figure(fig, "Fig1_calibration_observed_vs_predicted", kind='lineart', width_mm=90)
         plt.close()
 
         # noms/valeurs
@@ -147,9 +146,7 @@ class FantiMultipleRegression:
         labels  = ['VIF = 4 (investigate)', 'VIF = 10 (serious)']
         ax.legend(handles, labels, title='Thresholds')
 
-        # fig.tight_layout()
-        # fig.savefig("figure5", dpi=300, bbox_inches="tight")
         fig = plt.gcf()
-        save_figure(fig, "figure5", kind='lineart', width_mm=90)
+        save_figure(fig, "Fig8_vif_multicollinearity", kind='lineart', width_mm=90)
         plt.close(fig)
 

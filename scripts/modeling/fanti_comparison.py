@@ -105,11 +105,10 @@ def plot_model_comparison():
     
     plt.tight_layout()
     fig = plt.gcf()
-    save_figure(fig, "figure_comparison_fanti", kind='lineart', width_mm=90)
-    # plt.savefig('figure_comparison_fanti.png', dpi=300, bbox_inches='tight')
+    save_figure(fig, "Fig9_model_vs_fanti_dataset", kind='lineart', width_mm=90)
     plt.close()
     
-    print("Comparison figure saved as 'figure_comparison_fanti.png'")
+    print("Comparison figure saved as 'Fig9_model_vs_fanti_dataset.png'")
     
     # Calculate and print comparison metrics
     print("\n=== Model Comparison Metrics ===")

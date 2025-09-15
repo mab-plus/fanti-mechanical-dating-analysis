@@ -228,7 +228,7 @@ def main():
     plt.ylabel("Frequency")
 
     fig = plt.gcf()
-    save_figure(fig, "figure3", kind='lineart', width_mm=90)
+    save_figure(fig, "Fig2_predictive_performance_cv_rmse", kind='lineart', width_mm=90)
 
     plt.close()
 
